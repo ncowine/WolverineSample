@@ -16,6 +16,7 @@ public class TradingDbContext : DbContext
     public DbSet<Position> Positions => Set<Position>();
     public DbSet<Portfolio> Portfolios => Set<Portfolio>();
     public DbSet<TradeExecution> TradeExecutions => Set<TradeExecution>();
+    public DbSet<TradeNote> TradeNotes => Set<TradeNote>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +89,15 @@ public class TradingDbContext : DbContext
             entity.HasOne(e => e.Order)
                 .WithMany(o => o.TradeExecutions)
                 .HasForeignKey(e => e.OrderId);
+        });
+
+        modelBuilder.Entity<TradeNote>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Content).HasMaxLength(2000).IsRequired();
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.PositionId);
         });
 
         modelBuilder.Entity<AuditLog>(entity =>
