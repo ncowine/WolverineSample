@@ -10,6 +10,8 @@ public class MarketDataDbContext : DbContext
     public DbSet<Stock> Stocks => Set<Stock>();
     public DbSet<PriceCandle> PriceCandles => Set<PriceCandle>();
     public DbSet<TechnicalIndicator> TechnicalIndicators => Set<TechnicalIndicator>();
+    public DbSet<Watchlist> Watchlists => Set<Watchlist>();
+    public DbSet<WatchlistItem> WatchlistItems => Set<WatchlistItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,6 +45,24 @@ public class MarketDataDbContext : DbContext
             entity.HasOne(e => e.Stock)
                 .WithMany(s => s.TechnicalIndicators)
                 .HasForeignKey(e => e.StockId);
+        });
+
+        modelBuilder.Entity<Watchlist>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.HasIndex(e => e.UserId);
+        });
+
+        modelBuilder.Entity<WatchlistItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Symbol).HasMaxLength(10).IsRequired();
+            entity.HasOne(e => e.Watchlist)
+                .WithMany(w => w.Items)
+                .HasForeignKey(e => e.WatchlistId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => new { e.WatchlistId, e.Symbol }).IsUnique();
         });
     }
 }
