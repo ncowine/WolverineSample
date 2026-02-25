@@ -50,4 +50,13 @@ public static class WatchlistEndpoints
         return await bus.InvokeAsync<string>(
             new DeleteWatchlistCommand(watchlistId));
     }
+
+    [Authorize]
+    [WolverineGet("/api/watchlists/{watchlistId}/prices")]
+    public static async Task<List<StockPriceDto>> GetWatchlistPrices(
+        Guid watchlistId, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<List<StockPriceDto>>(
+            new GetWatchlistPricesQuery(watchlistId));
+    }
 }
