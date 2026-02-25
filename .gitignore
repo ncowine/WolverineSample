@@ -1,0 +1,33 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+
+## IDE
+.vs/
+.idea/
+*.sln.DotSettings.user
+
+## OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+## Build
+publish/
+out/
+
+## Secrets
+appsettings.*.local.json
+*.pfx
+
+## BMAD working files
+.bmad/
+
+## Claude Code
+.claude/

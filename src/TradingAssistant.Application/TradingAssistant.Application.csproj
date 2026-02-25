@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageReference Include="FluentValidation" Version="11.*" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.*" />
+    <PackageReference Include="WolverineFx" Version="3.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TradingAssistant.Contracts\TradingAssistant.Contracts.csproj" />
+    <ProjectReference Include="..\TradingAssistant.Domain\TradingAssistant.Domain.csproj" />
+    <ProjectReference Include="..\TradingAssistant.Infrastructure\TradingAssistant.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TradingAssistant.Api/TradingAssistant.Api.csproj" />
+    <Project Path="src/TradingAssistant.Application/TradingAssistant.Application.csproj" />
+    <Project Path="src/TradingAssistant.Contracts/TradingAssistant.Contracts.csproj" />
+    <Project Path="src/TradingAssistant.Domain/TradingAssistant.Domain.csproj" />
+    <Project Path="src/TradingAssistant.Infrastructure/TradingAssistant.Infrastructure.csproj" />
+    <Project Path="src/TradingAssistant.SharedKernel/TradingAssistant.SharedKernel.csproj" />
+  </Folder>
+</Solution>

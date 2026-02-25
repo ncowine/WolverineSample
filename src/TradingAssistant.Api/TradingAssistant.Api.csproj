@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.*" />
+    <PackageReference Include="WolverineFx" Version="3.*" />
+    <PackageReference Include="WolverineFx.Http" Version="3.*" />
+    <PackageReference Include="WolverineFx.FluentValidation" Version="3.*" />
+<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TradingAssistant.Application\TradingAssistant.Application.csproj" />
+    <ProjectReference Include="..\TradingAssistant.Contracts\TradingAssistant.Contracts.csproj" />
+    <ProjectReference Include="..\TradingAssistant.Infrastructure\TradingAssistant.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
