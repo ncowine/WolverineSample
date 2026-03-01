@@ -99,7 +99,8 @@ public static class DatabaseInitializer
             UserId = devUser.Id,
             Name = "Default Trading Account",
             Balance = 100_000m,
-            Currency = "USD"
+            Currency = "USD",
+            AccountType = AccountType.Live
         };
         tradingDb.Accounts.Add(account);
 

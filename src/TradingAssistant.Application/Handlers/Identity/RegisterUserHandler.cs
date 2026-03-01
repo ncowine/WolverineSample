@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
+using TradingAssistant.Domain.Enums;
 using TradingAssistant.Domain.Identity;
 using TradingAssistant.Domain.Trading;
 using TradingAssistant.Infrastructure.Persistence;
@@ -31,7 +32,8 @@ public class RegisterUserHandler
             UserId = user.Id,
             Name = $"{emailLower}'s Trading Account",
             Balance = 100_000m,
-            Currency = "USD"
+            Currency = "USD",
+            AccountType = AccountType.Live
         };
 
         var portfolio = new Portfolio

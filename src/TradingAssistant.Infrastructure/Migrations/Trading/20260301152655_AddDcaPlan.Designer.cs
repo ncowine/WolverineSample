@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TradingAssistant.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using TradingAssistant.Infrastructure.Persistence;
 namespace TradingAssistant.Infrastructure.Migrations.Trading
 {
     [DbContext(typeof(TradingDbContext))]
-    partial class TradingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260301152655_AddDcaPlan")]
+    partial class AddDcaPlan
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.24");
@@ -134,50 +137,6 @@ namespace TradingAssistant.Infrastructure.Migrations.Trading
                     b.HasIndex("UserId");
 
                     b.ToTable("Accounts");
-                });
-
-            modelBuilder.Entity("TradingAssistant.Domain.Trading.DcaExecution", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("DcaPlanId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ErrorReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("ExecutedPrice")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("OrderId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("Quantity")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DcaPlanId");
-
-                    b.ToTable("DcaExecutions");
                 });
 
             modelBuilder.Entity("TradingAssistant.Domain.Trading.DcaPlan", b =>
@@ -452,17 +411,6 @@ namespace TradingAssistant.Infrastructure.Migrations.Trading
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TradingAssistant.Domain.Trading.DcaExecution", b =>
-                {
-                    b.HasOne("TradingAssistant.Domain.Trading.DcaPlan", "DcaPlan")
-                        .WithMany("Executions")
-                        .HasForeignKey("DcaPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DcaPlan");
-                });
-
             modelBuilder.Entity("TradingAssistant.Domain.Trading.DcaPlan", b =>
                 {
                     b.HasOne("TradingAssistant.Domain.Trading.Account", "Account")
@@ -532,11 +480,6 @@ namespace TradingAssistant.Infrastructure.Migrations.Trading
                     b.Navigation("Portfolio");
 
                     b.Navigation("Positions");
-                });
-
-            modelBuilder.Entity("TradingAssistant.Domain.Trading.DcaPlan", b =>
-                {
-                    b.Navigation("Executions");
                 });
 
             modelBuilder.Entity("TradingAssistant.Domain.Trading.Order", b =>

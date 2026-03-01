@@ -10,4 +10,5 @@ public record OrderDto(
     decimal? Price,
     string Status,
     DateTime CreatedAt,
-    DateTime? FilledAt);
+    DateTime? FilledAt,
+    string AccountType);

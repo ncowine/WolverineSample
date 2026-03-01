@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Domain.Enums;
+using TradingAssistant.Domain.Identity;
 using TradingAssistant.Domain.MarketData;
 using TradingAssistant.Domain.Trading;
 using TradingAssistant.Infrastructure.Persistence;
@@ -81,12 +82,29 @@ public class SeedMarketDataHandler
 
         await marketDb.SaveChangesAsync();
 
+        // Create dev user for the default account
+        var devUser = await tradingDb.Users
+            .FirstOrDefaultAsync(u => u.Email == "dev@tradingassistant.local");
+
+        if (devUser is null)
+        {
+            devUser = new User
+            {
+                Email = "dev@tradingassistant.local",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Dev12345"),
+                Role = "Admin"
+            };
+            tradingDb.Users.Add(devUser);
+        }
+
         // Create default trading account
         var account = new Account
         {
+            UserId = devUser.Id,
             Name = "Default Trading Account",
             Balance = 100_000m,
-            Currency = "USD"
+            Currency = "USD",
+            AccountType = AccountType.Live
         };
         tradingDb.Accounts.Add(account);
 

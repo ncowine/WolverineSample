@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TradingAssistant.Domain.Audit;
+using TradingAssistant.Domain.Enums;
 using TradingAssistant.Domain.Identity;
 using TradingAssistant.Domain.Trading;
 
@@ -17,6 +18,8 @@ public class TradingDbContext : DbContext
     public DbSet<Portfolio> Portfolios => Set<Portfolio>();
     public DbSet<TradeExecution> TradeExecutions => Set<TradeExecution>();
     public DbSet<TradeNote> TradeNotes => Set<TradeNote>();
+    public DbSet<DcaPlan> DcaPlans => Set<DcaPlan>();
+    public DbSet<DcaExecution> DcaExecutions => Set<DcaExecution>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,6 +38,7 @@ public class TradingDbContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Balance).HasPrecision(18, 2);
             entity.Property(e => e.Currency).HasMaxLength(3);
+            entity.Property(e => e.AccountType).HasDefaultValue(AccountType.Live).IsRequired();
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Accounts)
                 .HasForeignKey(e => e.UserId);
@@ -99,6 +103,32 @@ public class TradingDbContext : DbContext
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.OrderId);
             entity.HasIndex(e => e.PositionId);
+        });
+
+        modelBuilder.Entity<DcaPlan>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Symbol).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Frequency).IsRequired();
+            entity.Property(e => e.NextExecutionDate).IsRequired();
+            entity.HasOne(e => e.Account)
+                .WithMany(a => a.DcaPlans)
+                .HasForeignKey(e => e.AccountId);
+            entity.HasIndex(e => new { e.AccountId, e.IsActive });
+        });
+
+        modelBuilder.Entity<DcaExecution>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.ExecutedPrice).HasPrecision(18, 4);
+            entity.Property(e => e.Quantity).HasPrecision(18, 4);
+            entity.Property(e => e.ErrorReason).HasMaxLength(500);
+            entity.HasOne(e => e.DcaPlan)
+                .WithMany(p => p.Executions)
+                .HasForeignKey(e => e.DcaPlanId);
+            entity.HasIndex(e => e.DcaPlanId);
         });
 
         modelBuilder.Entity<AuditLog>(entity =>
