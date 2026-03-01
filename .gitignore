@@ -26,6 +26,11 @@ Desktop.ini
 ## Build
 publish/
 out/
+dist/
+
+## Node
+node_modules/
+.angular/
 
 ## Secrets
 appsettings.*.local.json

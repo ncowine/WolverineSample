@@ -310,15 +310,16 @@ sprints:
         epic: "Screening"
 
   - sprint_number: 9
-    status: "not_started"
+    status: "in_progress"
     goal: "Frontend — Charts, Backtest UI & Screener"
     committed_points: 31
-    completed_points: 0
+    completed_points: 8
     stories:
       - story_id: "STORY-040"
         title: "TradingView Lightweight Charts integration"
         points: 8
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-01"
         epic: "Frontend"
       - story_id: "STORY-041"
         title: "Backtest configuration & execution UI"
