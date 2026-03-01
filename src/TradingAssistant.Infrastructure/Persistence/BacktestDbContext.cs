@@ -19,6 +19,8 @@ public class BacktestDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.RulesJson).HasMaxLength(8000);
+            entity.Ignore(e => e.UsesV2Engine);
         });
 
         modelBuilder.Entity<StrategyRule>(entity =>
@@ -47,6 +49,19 @@ public class BacktestDbContext : DbContext
             entity.Property(e => e.TotalReturn).HasPrecision(18, 4);
             entity.Property(e => e.MaxDrawdown).HasPrecision(18, 4);
             entity.Property(e => e.SharpeRatio).HasPrecision(8, 4);
+            entity.Property(e => e.Cagr).HasPrecision(18, 4);
+            entity.Property(e => e.SortinoRatio).HasPrecision(8, 4);
+            entity.Property(e => e.CalmarRatio).HasPrecision(8, 4);
+            entity.Property(e => e.ProfitFactor).HasPrecision(8, 4);
+            entity.Property(e => e.Expectancy).HasPrecision(18, 4);
+            entity.Property(e => e.OverfittingScore).HasPrecision(8, 4);
+            entity.Property(e => e.EquityCurveJson).HasMaxLength(500_000);
+            entity.Property(e => e.TradeLogJson).HasMaxLength(500_000);
+            entity.Property(e => e.MonthlyReturnsJson).HasMaxLength(8_000);
+            entity.Property(e => e.BenchmarkReturnJson).HasMaxLength(500_000);
+            entity.Property(e => e.ParametersJson).HasMaxLength(4_000);
+            entity.Property(e => e.WalkForwardJson).HasMaxLength(100_000);
+            entity.Property(e => e.SpyComparisonJson).HasMaxLength(1_000);
             entity.HasOne(e => e.BacktestRun)
                 .WithOne(r => r.Result)
                 .HasForeignKey<BacktestResult>(e => e.BacktestRunId);

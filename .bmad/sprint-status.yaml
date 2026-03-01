@@ -1,10 +1,12 @@
 version: "6.0.0"
 project_name: "TradingAssistant"
-project_level: 2
-current_sprint: 3
-sprint_plan_path: "docs/sprint-plan-trading-assistant-2026-02-25.md"
+project_level: 3
+current_sprint: 4
+sprint_plan_path: "docs/sprint-plan-trading-engine-2026-03-01.md"
+previous_plan_path: "docs/sprint-plan-trading-assistant-2026-02-25.md"
 
 sprints:
+  # === COMPLETED (Backend Phase) ===
   - sprint_number: 1
     start_date: "2026-02-25"
     end_date: "2026-03-10"
@@ -148,6 +150,195 @@ sprints:
         status: "completed"
         completion_date: "2026-03-01"
         epic: "DCA Automation"
+
+  # === NEW: Quantitative Trading Engine ===
+  - sprint_number: 4
+    status: "in_progress"
+    goal: "Data Foundation — Real market data pipeline"
+    committed_points: 18
+    completed_points: 13
+    stories:
+      - story_id: "STORY-020"
+        title: "Yahoo Finance data provider integration"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Data Foundation"
+      - story_id: "STORY-021"
+        title: "Historical data ingestion & multi-timeframe storage"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Data Foundation"
+      - story_id: "STORY-022"
+        title: "Stock universe & S&P 500 benchmark management"
+        points: 3
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Data Foundation"
+      - story_id: "STORY-023"
+        title: "Bulk data backfill background service"
+        points: 5
+        status: "not_started"
+        epic: "Data Foundation"
+
+  - sprint_number: 5
+    status: "in_progress"
+    goal: "Technical Indicators Engine"
+    committed_points: 20
+    completed_points: 20
+    status: "completed"
+    stories:
+      - story_id: "STORY-024"
+        title: "Indicator framework + trend indicators (SMA/EMA/WMA)"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Indicators"
+      - story_id: "STORY-025"
+        title: "Momentum indicators (RSI/MACD/Stochastic)"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Indicators"
+      - story_id: "STORY-026"
+        title: "Volatility + volume indicators (ATR/BB/OBV)"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Indicators"
+      - story_id: "STORY-027"
+        title: "Multi-timeframe indicator orchestrator"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Indicators"
+
+  - sprint_number: 6
+    status: "in_progress"
+    goal: "Backtesting Engine Rewrite"
+    committed_points: 26
+    completed_points: 26
+    status: "completed"
+    stories:
+      - story_id: "STORY-028"
+        title: "Strategy definition model overhaul"
+        points: 8
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Backtesting Engine"
+      - story_id: "STORY-029"
+        title: "Backtest engine core — event loop & order simulation"
+        points: 8
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Backtesting Engine"
+      - story_id: "STORY-030"
+        title: "Capital preservation enforcement in backtester"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Backtesting Engine"
+      - story_id: "STORY-031"
+        title: "Performance metrics calculator"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Backtesting Engine"
+
+  - sprint_number: 7
+    status: "in_progress"
+    goal: "Optimization & Walk-Forward Analysis"
+    committed_points: 18
+    completed_points: 18
+    status: "completed"
+    stories:
+      - story_id: "STORY-032"
+        title: "Parameter space definition & grid search"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Optimization"
+      - story_id: "STORY-033"
+        title: "Walk-forward analysis with overfitting detection"
+        points: 8
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Optimization"
+      - story_id: "STORY-034"
+        title: "Backtest result storage overhaul"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Optimization"
+
+  - sprint_number: 8
+    status: "in_progress"
+    goal: "Confidence Scoring & Stock Screening"
+    committed_points: 23
+    completed_points: 20
+    stories:
+      - story_id: "STORY-035"
+        title: "Multi-confirmation signal framework"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Screening"
+      - story_id: "STORY-036"
+        title: "Confidence grading & signal ranking (A-F)"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Screening"
+      - story_id: "STORY-037"
+        title: "Stock screener engine"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Screening"
+      - story_id: "STORY-038"
+        title: "Screener scheduling & API endpoints"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Screening"
+      - story_id: "STORY-039"
+        title: "Backtest-to-screener parameter pipeline"
+        points: 3
+        status: "not_started"
+        epic: "Screening"
+
+  - sprint_number: 9
+    status: "not_started"
+    goal: "Frontend — Charts, Backtest UI & Screener"
+    committed_points: 31
+    completed_points: 0
+    stories:
+      - story_id: "STORY-040"
+        title: "TradingView Lightweight Charts integration"
+        points: 8
+        status: "not_started"
+        epic: "Frontend"
+      - story_id: "STORY-041"
+        title: "Backtest configuration & execution UI"
+        points: 5
+        status: "not_started"
+        epic: "Frontend"
+      - story_id: "STORY-042"
+        title: "Backtest results dashboard"
+        points: 8
+        status: "not_started"
+        epic: "Frontend"
+      - story_id: "STORY-043"
+        title: "Screener results & signal detail view"
+        points: 5
+        status: "not_started"
+        epic: "Frontend"
+      - story_id: "STORY-044"
+        title: "Dashboard home with screener highlights"
+        points: 5
+        status: "not_started"
+        epic: "Frontend"
 
 velocity:
   sprint_1: 24

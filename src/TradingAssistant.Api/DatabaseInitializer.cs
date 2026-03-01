@@ -85,6 +85,27 @@ public static class DatabaseInitializer
 
         await marketDb.SaveChangesAsync();
 
+        // Seed default stock universe: S&P 500 Top 50
+        if (!await marketDb.StockUniverses.AnyAsync())
+        {
+            var sp500Top50 = new StockUniverse
+            {
+                Name = "S&P 500 Top 50",
+                Description = "Top 50 most liquid S&P 500 components",
+                IncludesBenchmark = true
+            };
+            sp500Top50.SetSymbolList(new[]
+            {
+                "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK.B", "JPM", "V",
+                "UNH", "XOM", "JNJ", "WMT", "MA", "PG", "AVGO", "HD", "CVX", "MRK",
+                "ABBV", "PEP", "KO", "COST", "ADBE", "CRM", "TMO", "CSCO", "ACN", "MCD",
+                "ABT", "NKE", "DHR", "NFLX", "AMD", "LIN", "TXN", "QCOM", "PM", "INTC",
+                "CMCSA", "UNP", "ORCL", "LOW", "UPS", "MS", "GS", "BLK", "CAT", "BA"
+            });
+            marketDb.StockUniverses.Add(sp500Top50);
+            await marketDb.SaveChangesAsync();
+        }
+
         // Create a system/dev user for the default account
         var devUser = new User
         {

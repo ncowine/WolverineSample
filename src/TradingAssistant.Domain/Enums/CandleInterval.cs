@@ -1,3 +1,3 @@
 namespace TradingAssistant.Domain.Enums;
 
-public enum CandleInterval { OneMinute, FiveMinute, FifteenMinute, OneHour, FourHour, Daily, Weekly }
+public enum CandleInterval { OneMinute, FiveMinute, FifteenMinute, OneHour, FourHour, Daily, Weekly, Monthly }

@@ -50,7 +50,14 @@ public class BacktestResultCache : DataCache<Guid, BacktestResultDto>
                 run.Symbol, run.Status.ToString(),
                 run.Result.TotalTrades, run.Result.WinRate,
                 run.Result.TotalReturn, run.Result.MaxDrawdown, run.Result.SharpeRatio,
-                run.StartDate, run.EndDate, run.CreatedAt);
+                run.StartDate, run.EndDate, run.CreatedAt,
+                run.Result.Cagr, run.Result.SortinoRatio,
+                run.Result.CalmarRatio, run.Result.ProfitFactor,
+                run.Result.Expectancy, run.Result.OverfittingScore,
+                run.Result.EquityCurveJson, run.Result.TradeLogJson,
+                run.Result.MonthlyReturnsJson, run.Result.BenchmarkReturnJson,
+                run.Result.ParametersJson, run.Result.WalkForwardJson,
+                run.Result.SpyComparisonJson);
         }
 
         return result;

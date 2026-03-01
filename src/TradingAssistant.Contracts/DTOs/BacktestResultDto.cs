@@ -13,4 +13,18 @@ public record BacktestResultDto(
     decimal SharpeRatio,
     DateTime StartDate,
     DateTime EndDate,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    // ── Extended fields (STORY-034) ──
+    decimal Cagr = 0,
+    decimal SortinoRatio = 0,
+    decimal CalmarRatio = 0,
+    decimal ProfitFactor = 0,
+    decimal Expectancy = 0,
+    decimal? OverfittingScore = null,
+    string? EquityCurveJson = null,
+    string? TradeLogJson = null,
+    string? MonthlyReturnsJson = null,
+    string? BenchmarkReturnJson = null,
+    string? ParametersJson = null,
+    string? WalkForwardJson = null,
+    string? SpyComparisonJson = null);

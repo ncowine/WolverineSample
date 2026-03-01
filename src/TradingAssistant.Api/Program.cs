@@ -6,7 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 using TradingAssistant.Api.Middleware;
 using TradingAssistant.Api.Services;
 using TradingAssistant.Application.Services;
+using TradingAssistant.Contracts.MarketData;
 using TradingAssistant.Infrastructure.Caching;
+using TradingAssistant.Infrastructure.MarketData;
 using TradingAssistant.Infrastructure.Persistence;
 using Wolverine;
 using Wolverine.FluentValidation;
@@ -80,6 +82,13 @@ builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 
 // Register audit interceptor
 builder.Services.AddScoped<AuditSaveChangesInterceptor>();
+
+// Register market data provider (Yahoo Finance via HttpClientFactory)
+builder.Services.AddHttpClient<IMarketDataProvider, YahooFinanceProvider>(client =>
+{
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("TradingAssistant/1.0");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 // Register DCA plan background execution service
 builder.Services.AddHostedService<DcaPlanExecutionService>();

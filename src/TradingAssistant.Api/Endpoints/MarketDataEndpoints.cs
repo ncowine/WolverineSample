@@ -17,6 +17,14 @@ public class MarketDataEndpoints : IEndpoint
             .WithSummary("Seed stocks and historical candle data")
             .AllowAnonymous();
 
+        group.MapPostToWolverine<FetchMarketDataCommand, FetchMarketDataResponse>("/fetch")
+            .WithSummary("Fetch raw daily candles from Yahoo Finance")
+            .RequireAuthorization();
+
+        group.MapPostToWolverine<IngestMarketDataCommand, IngestMarketDataResponse>("/ingest")
+            .WithSummary("Ingest market data with daily/weekly/monthly aggregation")
+            .RequireAuthorization();
+
         group.MapGet("/stocks/{symbol}/price", GetStockPrice)
             .WithSummary("Get current price for a stock")
             .RequireAuthorization();

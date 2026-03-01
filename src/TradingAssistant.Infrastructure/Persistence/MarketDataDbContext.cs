@@ -12,6 +12,8 @@ public class MarketDataDbContext : DbContext
     public DbSet<TechnicalIndicator> TechnicalIndicators => Set<TechnicalIndicator>();
     public DbSet<Watchlist> Watchlists => Set<Watchlist>();
     public DbSet<WatchlistItem> WatchlistItems => Set<WatchlistItem>();
+    public DbSet<StockUniverse> StockUniverses => Set<StockUniverse>();
+    public DbSet<ScreenerRun> ScreenerRuns => Set<ScreenerRun>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,7 +37,7 @@ public class MarketDataDbContext : DbContext
             entity.HasOne(e => e.Stock)
                 .WithMany(s => s.PriceCandles)
                 .HasForeignKey(e => e.StockId);
-            entity.HasIndex(e => new { e.StockId, e.Timestamp, e.Interval });
+            entity.HasIndex(e => new { e.StockId, e.Interval, e.Timestamp }).IsUnique();
         });
 
         modelBuilder.Entity<TechnicalIndicator>(entity =>
@@ -63,6 +65,24 @@ public class MarketDataDbContext : DbContext
                 .HasForeignKey(e => e.WatchlistId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(e => new { e.WatchlistId, e.Symbol }).IsUnique();
+        });
+
+        modelBuilder.Entity<StockUniverse>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Symbols).HasMaxLength(4000);
+        });
+
+        modelBuilder.Entity<ScreenerRun>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.ScanDate);
+            entity.Property(e => e.StrategyName).HasMaxLength(200);
+            entity.Property(e => e.ResultsJson).HasMaxLength(500_000);
+            entity.Property(e => e.WarningsJson).HasMaxLength(8_000);
         });
     }
 }
