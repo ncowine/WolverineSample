@@ -25,6 +25,9 @@ public class BacktestEndpoints : IEndpoint
         strategies.MapGet("/", ListStrategies)
             .WithSummary("List all trading strategies (paginated)");
 
+        strategies.MapGet("/{strategyId}/optimized-params", GetOptimizedParams)
+            .WithSummary("Get current and historical optimized parameters for a strategy");
+
         var backtests = app.MapGroup("/api/backtests")
             .WithTags("Backtests")
             .RequireAuthorization();
@@ -77,5 +80,13 @@ public class BacktestEndpoints : IEndpoint
             .ToList();
 
         return await bus.InvokeAsync<BacktestComparisonDto>(new CompareBacktestsQuery(parsedIds));
+    }
+
+    private static async Task<OptimizedParamsResponse> GetOptimizedParams(
+        Guid strategyId,
+        IMessageBus bus)
+    {
+        return await bus.InvokeAsync<OptimizedParamsResponse>(
+            new GetOptimizedParamsQuery(strategyId));
     }
 }

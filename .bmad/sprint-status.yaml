@@ -273,10 +273,10 @@ sprints:
         epic: "Optimization"
 
   - sprint_number: 8
-    status: "in_progress"
+    status: "completed"
     goal: "Confidence Scoring & Stock Screening"
     committed_points: 23
-    completed_points: 20
+    completed_points: 23
     stories:
       - story_id: "STORY-035"
         title: "Multi-confirmation signal framework"
@@ -305,7 +305,8 @@ sprints:
       - story_id: "STORY-039"
         title: "Backtest-to-screener parameter pipeline"
         points: 3
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-01"
         epic: "Screening"
 
   - sprint_number: 9

@@ -11,6 +11,7 @@ public class BacktestDbContext : DbContext
     public DbSet<StrategyRule> StrategyRules => Set<StrategyRule>();
     public DbSet<BacktestRun> BacktestRuns => Set<BacktestRun>();
     public DbSet<BacktestResult> BacktestResults => Set<BacktestResult>();
+    public DbSet<OptimizedParameterSet> OptimizedParameterSets => Set<OptimizedParameterSet>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +66,20 @@ public class BacktestDbContext : DbContext
             entity.HasOne(e => e.BacktestRun)
                 .WithOne(r => r.Result)
                 .HasForeignKey<BacktestResult>(e => e.BacktestRunId);
+        });
+
+        modelBuilder.Entity<OptimizedParameterSet>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ParametersJson).HasMaxLength(4_000).IsRequired();
+            entity.Property(e => e.OverfittingGrade).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.AvgOutOfSampleSharpe).HasPrecision(8, 4);
+            entity.Property(e => e.AvgEfficiency).HasPrecision(8, 4);
+            entity.Property(e => e.AvgOverfittingScore).HasPrecision(8, 4);
+            entity.HasIndex(e => new { e.StrategyId, e.IsActive });
+            entity.HasOne(e => e.Strategy)
+                .WithMany()
+                .HasForeignKey(e => e.StrategyId);
         });
     }
 }
