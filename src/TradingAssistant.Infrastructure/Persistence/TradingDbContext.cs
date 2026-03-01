@@ -95,6 +95,7 @@ public class TradingDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Content).HasMaxLength(2000).IsRequired();
+            entity.Property(e => e.Tags).HasMaxLength(500);
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.OrderId);
             entity.HasIndex(e => e.PositionId);

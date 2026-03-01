@@ -5,5 +5,6 @@ public record TradeNoteDto(
     Guid? OrderId,
     Guid? PositionId,
     string Content,
+    List<string> Tags,
     DateTime CreatedAt,
     DateTime? UpdatedAt);

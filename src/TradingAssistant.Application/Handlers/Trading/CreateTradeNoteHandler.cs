@@ -36,12 +36,16 @@ public class CreateTradeNoteHandler
                 throw new Application.Exceptions.ForbiddenAccessException("You do not have access to this position.");
         }
 
+        var tags = command.Tags?.Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => t.Trim()).ToList()
+                  ?? [];
+
         var note = new TradeNote
         {
             UserId = currentUser.UserId,
             OrderId = command.OrderId,
             PositionId = command.PositionId,
-            Content = command.Content.Trim()
+            Content = command.Content.Trim(),
+            Tags = string.Join(",", tags)
         };
 
         db.TradeNotes.Add(note);
@@ -49,6 +53,6 @@ public class CreateTradeNoteHandler
 
         return new TradeNoteDto(
             note.Id, note.OrderId, note.PositionId,
-            note.Content, note.CreatedAt, note.UpdatedAt);
+            note.Content, tags, note.CreatedAt, note.UpdatedAt);
     }
 }

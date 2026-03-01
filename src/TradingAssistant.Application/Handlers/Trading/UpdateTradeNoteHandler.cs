@@ -24,10 +24,20 @@ public class UpdateTradeNoteHandler
         note.Content = command.Content.Trim();
         note.UpdatedAt = DateTime.UtcNow;
 
+        if (command.Tags is not null)
+        {
+            var tags = command.Tags.Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => t.Trim()).ToList();
+            note.Tags = string.Join(",", tags);
+        }
+
         await db.SaveChangesAsync();
+
+        var tagList = string.IsNullOrWhiteSpace(note.Tags)
+            ? new List<string>()
+            : note.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
         return new TradeNoteDto(
             note.Id, note.OrderId, note.PositionId,
-            note.Content, note.CreatedAt, note.UpdatedAt);
+            note.Content, tagList, note.CreatedAt, note.UpdatedAt);
     }
 }
