@@ -7,4 +7,7 @@
     <Project Path="src/TradingAssistant.Infrastructure/TradingAssistant.Infrastructure.csproj" />
     <Project Path="src/TradingAssistant.SharedKernel/TradingAssistant.SharedKernel.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TradingAssistant.Tests/TradingAssistant.Tests.csproj" />
+  </Folder>
 </Solution>
