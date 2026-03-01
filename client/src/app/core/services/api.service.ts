@@ -122,6 +122,10 @@ export class ApiService {
     return this.http.post<any>('/api/strategies', strategy);
   }
 
+  createStrategyV2(strategy: any) {
+    return this.http.post<any>('/api/strategies/v2', strategy);
+  }
+
   getStrategies(params?: any) {
     return this.http.get<any>('/api/strategies', { params: this.toHttpParams(params) });
   }
@@ -137,6 +141,18 @@ export class ApiService {
 
   getBacktests(params?: any) {
     return this.http.get<any>('/api/backtests', { params: this.toHttpParams(params) });
+  }
+
+  compareBacktests(ids: string[]) {
+    return this.http.get<any>('/api/backtests/compare', {
+      params: this.toHttpParams({ ids: ids.join(',') }),
+    });
+  }
+
+  getBenchmarkData(startDate: string, endDate: string) {
+    return this.http.get<any>('/api/universes/benchmark', {
+      params: this.toHttpParams({ startDate, endDate }),
+    });
   }
 
   // --- Screener ---

@@ -313,7 +313,8 @@ sprints:
     status: "in_progress"
     goal: "Frontend — Charts, Backtest UI & Screener"
     committed_points: 31
-    completed_points: 8
+    completed_points: 31
+    status: "completed"
     stories:
       - story_id: "STORY-040"
         title: "TradingView Lightweight Charts integration"
@@ -324,22 +325,26 @@ sprints:
       - story_id: "STORY-041"
         title: "Backtest configuration & execution UI"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-01"
         epic: "Frontend"
       - story_id: "STORY-042"
         title: "Backtest results dashboard"
         points: 8
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-01"
         epic: "Frontend"
       - story_id: "STORY-043"
         title: "Screener results & signal detail view"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-01"
         epic: "Frontend"
       - story_id: "STORY-044"
         title: "Dashboard home with screener highlights"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-01"
         epic: "Frontend"
 
 velocity:

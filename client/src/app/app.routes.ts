@@ -56,6 +56,16 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/charts/charts.routes').then((m) => m.chartsRoutes),
       },
+      {
+        path: 'backtests',
+        loadChildren: () =>
+          import('./features/backtests/backtests.routes').then((m) => m.backtestsRoutes),
+      },
+      {
+        path: 'screener',
+        loadChildren: () =>
+          import('./features/screener/screener.routes').then((m) => m.screenerRoutes),
+      },
     ],
   },
 

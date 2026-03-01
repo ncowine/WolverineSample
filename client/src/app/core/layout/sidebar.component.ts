@@ -31,5 +31,7 @@ export class SidebarComponent {
     { route: '/dca', icon: '\u{1F504}', label: 'DCA Plans' },
     { route: '/watchlists', icon: '\u{1F440}', label: 'Watchlists' },
     { route: '/journal', icon: '\u{1F4D3}', label: 'Journal' },
+    { route: '/backtests', icon: '\u{1F9EA}', label: 'Backtests' },
+    { route: '/screener', icon: '\u{1F3AF}', label: 'Screener' },
   ];
 }
