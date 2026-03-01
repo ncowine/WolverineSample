@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
@@ -36,14 +37,14 @@ public class StockUniverseEndpoints : IEndpoint
     }
 
     private static async Task<StockUniverseDto> AddSymbols(
-        Guid universeId, AddUniverseSymbolsCommand command, IMessageBus bus)
+        [FromRoute] Guid universeId, [FromBody] AddUniverseSymbolsCommand command, IMessageBus bus)
     {
         return await bus.InvokeAsync<StockUniverseDto>(
             command with { UniverseId = universeId });
     }
 
     private static async Task<StockUniverseDto> RemoveSymbols(
-        Guid universeId, RemoveUniverseSymbolsCommand command, IMessageBus bus)
+        [FromRoute] Guid universeId, [FromBody] RemoveUniverseSymbolsCommand command, IMessageBus bus)
     {
         return await bus.InvokeAsync<StockUniverseDto>(
             command with { UniverseId = universeId });
