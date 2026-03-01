@@ -1,6 +1,7 @@
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
+using TradingAssistant.Infrastructure.Persistence;
 using TradingAssistant.SharedKernel;
 using Wolverine;
 using Wolverine.Http;
@@ -25,6 +26,9 @@ public class TradingEndpoints : IEndpoint
         group.MapPostToWolverine<ClosePositionCommand, string>("/positions/close")
             .WithSummary("Close an open position");
 
+        group.MapPostToWolverine<CreatePaperAccountCommand, AccountDto>("/accounts/paper")
+            .WithSummary("Create a paper trading account");
+
         group.MapGet("/portfolio/{accountId}", GetPortfolio)
             .WithSummary("Get portfolio summary for an account");
 
@@ -33,16 +37,36 @@ public class TradingEndpoints : IEndpoint
 
         group.MapGet("/positions/{accountId}", GetPositions)
             .WithSummary("Get positions for an account, optionally filtered by status");
+
+        group.MapPostToWolverine<CreateDcaPlanCommand, DcaPlanDto>("/dca-plans")
+            .WithSummary("Create a Dollar-Cost Averaging plan");
+
+        group.MapGet("/dca-plans/{accountId}", GetDcaPlans)
+            .WithSummary("List DCA plans for an account");
+
+        group.MapPost("/dca-plans/{planId}/pause", PauseDcaPlan)
+            .WithSummary("Pause an active DCA plan");
+
+        group.MapPost("/dca-plans/{planId}/resume", ResumeDcaPlan)
+            .WithSummary("Resume a paused DCA plan");
+
+        group.MapDelete("/dca-plans/{planId}", CancelDcaPlan)
+            .WithSummary("Cancel a DCA plan permanently");
+
+        group.MapGet("/dca-plans/{planId}/executions", GetDcaExecutions)
+            .WithSummary("List execution history for a DCA plan");
     }
 
-    private static async Task<OrderDto> PlaceOrder(PlaceOrderCommand command, IMessageBus bus)
+    private static async Task<OrderDto> PlaceOrder(PlaceOrderCommand command, IMessageBus bus, TradingDbContext db)
     {
+        var account = await db.Accounts.FindAsync(command.AccountId);
         await bus.InvokeAsync(command);
 
         return new OrderDto(
             Guid.Empty, command.AccountId, command.Symbol,
             command.Side, command.Type, command.Quantity, command.Price,
-            "Pending", DateTime.UtcNow, null);
+            "Pending", DateTime.UtcNow, null,
+            account?.AccountType.ToString() ?? "Live");
     }
 
     private static async Task<PortfolioDto> GetPortfolio(Guid accountId, IMessageBus bus)
@@ -66,5 +90,32 @@ public class TradingEndpoints : IEndpoint
         IMessageBus bus)
     {
         return await bus.InvokeAsync<List<PositionDto>>(new GetPositionsQuery(accountId, status));
+    }
+
+    private static async Task<List<DcaPlanDto>> GetDcaPlans(Guid accountId, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<List<DcaPlanDto>>(new GetDcaPlansQuery(accountId));
+    }
+
+    private static async Task<DcaPlanDto> PauseDcaPlan(Guid planId, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<DcaPlanDto>(new PauseDcaPlanCommand(planId));
+    }
+
+    private static async Task<DcaPlanDto> ResumeDcaPlan(Guid planId, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<DcaPlanDto>(new ResumeDcaPlanCommand(planId));
+    }
+
+    private static async Task<string> CancelDcaPlan(Guid planId, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<string>(new CancelDcaPlanCommand(planId));
+    }
+
+    private static async Task<PagedResponse<DcaExecutionDto>> GetDcaExecutions(
+        Guid planId, int? page, int? pageSize, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<PagedResponse<DcaExecutionDto>>(
+            new GetDcaExecutionsQuery(planId, page ?? 1, pageSize ?? 20));
     }
 }

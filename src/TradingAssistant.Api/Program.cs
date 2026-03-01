@@ -81,6 +81,9 @@ builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 // Register audit interceptor
 builder.Services.AddScoped<AuditSaveChangesInterceptor>();
 
+// Register DCA plan background execution service
+builder.Services.AddHostedService<DcaPlanExecutionService>();
+
 // Configure Wolverine
 builder.Host.UseWolverine(opts =>
 {

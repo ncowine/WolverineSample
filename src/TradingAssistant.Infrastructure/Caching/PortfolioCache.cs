@@ -36,6 +36,7 @@ public class PortfolioCache : DataCache<Guid, PortfolioDto>
         var result = new Dictionary<Guid, PortfolioDto>();
 
         var portfolios = await db.Portfolios
+            .Include(p => p.Account)
             .Where(p => keys.Contains(p.AccountId))
             .ToListAsync(ct);
 
@@ -48,7 +49,8 @@ public class PortfolioCache : DataCache<Guid, PortfolioDto>
                 portfolio.CashBalance,
                 portfolio.InvestedValue,
                 portfolio.TotalPnL,
-                portfolio.LastUpdatedAt);
+                portfolio.LastUpdatedAt,
+                portfolio.Account.AccountType.ToString());
         }
 
         return result;

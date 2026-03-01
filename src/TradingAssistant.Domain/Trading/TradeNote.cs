@@ -8,4 +8,5 @@ public class TradeNote : BaseEntity
     public Guid? OrderId { get; set; }
     public Guid? PositionId { get; set; }
     public string Content { get; set; } = string.Empty;
+    public string Tags { get; set; } = string.Empty;
 }

@@ -5,6 +5,7 @@ using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.Events;
 using TradingAssistant.Domain.Enums;
 using TradingAssistant.Domain.Trading;
+using TradingAssistant.Infrastructure.Caching;
 using TradingAssistant.Infrastructure.Persistence;
 
 namespace TradingAssistant.Application.Handlers.Trading;
@@ -14,7 +15,8 @@ public class PlaceOrderHandler
     public static async Task<(OrderPlaced, OrderDto_Internal)> HandleAsync(
         PlaceOrderCommand command,
         TradingDbContext db,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        StockPriceCache stockPriceCache)
     {
         var account = await db.Accounts.FindAsync(command.AccountId)
             ?? throw new InvalidOperationException($"Account '{command.AccountId}' not found.");
@@ -28,8 +30,18 @@ public class PlaceOrderHandler
         if (!Enum.TryParse<OrderType>(command.Type, true, out var type))
             throw new InvalidOperationException($"Invalid order type: {command.Type}");
 
-        // For market orders, simulate a price; for limit orders, use the provided price
-        var executionPrice = command.Price ?? 100m; // Simplified: in reality, fetch from market data
+        // Paper accounts always use current market price; live accounts use provided price
+        decimal executionPrice;
+        if (account.AccountType == AccountType.Paper)
+        {
+            var priceData = await stockPriceCache.Get(command.Symbol);
+            executionPrice = priceData?.CurrentPrice
+                ?? throw new InvalidOperationException($"No market price available for '{command.Symbol}'.");
+        }
+        else
+        {
+            executionPrice = command.Price ?? 100m;
+        }
 
         var totalCost = executionPrice * command.Quantity;
 

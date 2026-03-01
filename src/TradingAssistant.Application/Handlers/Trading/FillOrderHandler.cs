@@ -25,8 +25,10 @@ public class FillOrderHandler
         order.Status = OrderStatus.Filled;
         order.FilledAt = DateTime.UtcNow;
 
-        // Calculate fee (0.1% of trade value)
-        var fee = Math.Round(@event.Price * @event.Quantity * 0.001m, 2);
+        // Paper accounts trade fee-free; live accounts pay 0.1% of trade value
+        var fee = order.Account.AccountType == AccountType.Paper
+            ? 0m
+            : Math.Round(@event.Price * @event.Quantity * 0.001m, 2);
 
         // Create trade execution
         var execution = new TradeExecution

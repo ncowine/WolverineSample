@@ -7,4 +7,5 @@ public record PortfolioDto(
     decimal CashBalance,
     decimal InvestedValue,
     decimal TotalPnL,
-    DateTime LastUpdatedAt);
+    DateTime LastUpdatedAt,
+    string AccountType);

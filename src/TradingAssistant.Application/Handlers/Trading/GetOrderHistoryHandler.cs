@@ -34,7 +34,8 @@ public class GetOrderHistoryHandler
                 o.Id, o.AccountId, o.Symbol,
                 o.Side.ToString(), o.Type.ToString(),
                 o.Quantity, o.Price, o.Status.ToString(),
-                o.CreatedAt, o.FilledAt))
+                o.CreatedAt, o.FilledAt,
+                account.AccountType.ToString()))
             .ToListAsync();
 
         return new PagedResponse<OrderDto>

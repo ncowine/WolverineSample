@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RollForward>Major</RollForward>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="xunit" Version="2.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.*" />
+    <PackageReference Include="NSubstitute" Version="5.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TradingAssistant.Application\TradingAssistant.Application.csproj" />
+    <ProjectReference Include="..\..\src\TradingAssistant.Infrastructure\TradingAssistant.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\TradingAssistant.Contracts\TradingAssistant.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\TradingAssistant.Domain\TradingAssistant.Domain.csproj" />
+    <ProjectReference Include="..\..\src\TradingAssistant.SharedKernel\TradingAssistant.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

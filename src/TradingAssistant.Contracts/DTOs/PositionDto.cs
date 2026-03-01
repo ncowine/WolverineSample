@@ -10,4 +10,5 @@ public record PositionDto(
     decimal UnrealizedPnL,
     string Status,
     DateTime OpenedAt,
-    DateTime? ClosedAt);
+    DateTime? ClosedAt,
+    string AccountType);

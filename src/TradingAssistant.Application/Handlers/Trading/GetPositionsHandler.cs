@@ -35,7 +35,8 @@ public class GetPositionsHandler
                 p.Id, p.AccountId, p.Symbol,
                 p.Quantity, p.AverageEntryPrice, p.CurrentPrice,
                 (p.CurrentPrice - p.AverageEntryPrice) * p.Quantity,
-                p.Status.ToString(), p.OpenedAt, p.ClosedAt))
+                p.Status.ToString(), p.OpenedAt, p.ClosedAt,
+                account.AccountType.ToString()))
             .ToListAsync();
     }
 }
