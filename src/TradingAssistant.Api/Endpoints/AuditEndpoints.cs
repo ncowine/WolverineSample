@@ -1,17 +1,21 @@
-using Microsoft.AspNetCore.Authorization;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
 using TradingAssistant.SharedKernel;
 using Wolverine;
-using Wolverine.Http;
 
 namespace TradingAssistant.Api.Endpoints;
 
-public static class AuditEndpoints
+public class AuditEndpoints : IEndpoint
 {
-    [Authorize]
-    [WolverineGet("/api/audit-logs")]
-    public static async Task<PagedResponse<AuditLogDto>> GetAuditLogs(
+    public static void MapEndpoint(IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/audit-logs", GetAuditLogs)
+            .WithTags("Audit")
+            .WithSummary("Query audit logs with optional filters")
+            .RequireAuthorization();
+    }
+
+    private static async Task<PagedResponse<AuditLogDto>> GetAuditLogs(
         string? entityType,
         string? entityId,
         string? action,

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
@@ -8,18 +7,35 @@ using Wolverine.Http;
 
 namespace TradingAssistant.Api.Endpoints;
 
-public static class BacktestEndpoints
+public class BacktestEndpoints : IEndpoint
 {
-    [Authorize]
-    [WolverinePost("/api/strategies")]
-    public static async Task<StrategyDto> CreateStrategy(CreateStrategyCommand command, IMessageBus bus)
+    public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        return await bus.InvokeAsync<StrategyDto>(command);
+        var strategies = app.MapGroup("/api/strategies")
+            .WithTags("Strategies")
+            .RequireAuthorization();
+
+        strategies.MapPostToWolverine<CreateStrategyCommand, StrategyDto>("/")
+            .WithSummary("Create a new trading strategy with rules");
+
+        strategies.MapGet("/", ListStrategies)
+            .WithSummary("List all trading strategies (paginated)");
+
+        var backtests = app.MapGroup("/api/backtests")
+            .WithTags("Backtests")
+            .RequireAuthorization();
+
+        backtests.MapPostToWolverine<RunBacktestCommand, BacktestRunDto>("/")
+            .WithSummary("Run a backtest for a strategy against historical data");
+
+        backtests.MapGet("/{backtestRunId}", GetBacktestResult)
+            .WithSummary("Get the result of a specific backtest run");
+
+        backtests.MapGet("/", ListBacktestRuns)
+            .WithSummary("List backtest runs, optionally filtered by strategy");
     }
 
-    [Authorize]
-    [WolverineGet("/api/strategies")]
-    public static async Task<PagedResponse<StrategyDto>> ListStrategies(
+    private static async Task<PagedResponse<StrategyDto>> ListStrategies(
         int page,
         int pageSize,
         IMessageBus bus)
@@ -28,23 +44,12 @@ public static class BacktestEndpoints
             new ListStrategiesQuery(page > 0 ? page : 1, pageSize > 0 ? pageSize : 20));
     }
 
-    [Authorize]
-    [WolverinePost("/api/backtests")]
-    public static async Task<BacktestRunDto> RunBacktest(RunBacktestCommand command, IMessageBus bus)
-    {
-        return await bus.InvokeAsync<BacktestRunDto>(command);
-    }
-
-    [Authorize]
-    [WolverineGet("/api/backtests/{backtestRunId}")]
-    public static async Task<BacktestResultDto> GetBacktestResult(Guid backtestRunId, IMessageBus bus)
+    private static async Task<BacktestResultDto> GetBacktestResult(Guid backtestRunId, IMessageBus bus)
     {
         return await bus.InvokeAsync<BacktestResultDto>(new GetBacktestResultQuery(backtestRunId));
     }
 
-    [Authorize]
-    [WolverineGet("/api/backtests")]
-    public static async Task<PagedResponse<BacktestRunDto>> ListBacktestRuns(
+    private static async Task<PagedResponse<BacktestRunDto>> ListBacktestRuns(
         Guid? strategyId,
         int page,
         int pageSize,

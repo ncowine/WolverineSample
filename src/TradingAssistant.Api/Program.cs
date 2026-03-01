@@ -10,22 +10,23 @@ using TradingAssistant.Infrastructure.Caching;
 using TradingAssistant.Infrastructure.Persistence;
 using Wolverine;
 using Wolverine.FluentValidation;
+using TradingAssistant.Api.Endpoints;
 using Wolverine.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Register 3 DbContexts
 builder.Services.AddDbContext<MarketDataDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("MarketDataDb")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("MarketDataDb")));
 
 builder.Services.AddDbContext<TradingDbContext>((sp, options) =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("TradingDb"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("TradingDb"));
     options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
 });
 
 builder.Services.AddDbContext<BacktestDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("BacktestDb")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("BacktestDb")));
 
 // Register caches as singletons (DataCache starts background tasks in constructor)
 builder.Services.AddSingleton<StockPriceCache>();
@@ -90,16 +91,57 @@ builder.Host.UseWolverine(opts =>
 
 builder.Services.AddWolverineHttp();
 
+// Swagger / OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "TradingAssistant API",
+        Version = "v1",
+        Description = "Enterprise trading assistant with market data, order management, backtesting and more."
+    });
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter your JWT token"
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
 var app = builder.Build();
 
 // Apply migrations and seed data in Development
 await TradingAssistant.Api.DatabaseInitializer.InitializeAsync(app);
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseMiddleware<TradingAssistant.Api.Middleware.ValidationExceptionMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapWolverineEndpoints();
+app.MapEndpoints();
 
 app.Run();

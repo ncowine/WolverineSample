@@ -8,6 +8,11 @@ obj/
 *.pdb
 *.exe
 
+## SQLite
+*.db
+*.db-shm
+*.db-wal
+
 ## IDE
 .vs/
 .idea/

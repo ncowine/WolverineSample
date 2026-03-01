@@ -15,12 +15,12 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                 name: "Strategies",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -31,14 +31,14 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                 name: "BacktestRuns",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    StrategyId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Symbol = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    StrategyId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Symbol = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -55,14 +55,14 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                 name: "StrategyRules",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    StrategyId = table.Column<Guid>(type: "uuid", nullable: false),
-                    IndicatorType = table.Column<int>(type: "integer", nullable: false),
-                    Condition = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Threshold = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
-                    SignalType = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    StrategyId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    IndicatorType = table.Column<int>(type: "INTEGER", nullable: false),
+                    Condition = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Threshold = table.Column<decimal>(type: "TEXT", precision: 18, scale: 6, nullable: false),
+                    SignalType = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -79,16 +79,16 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                 name: "BacktestResults",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    BacktestRunId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TotalTrades = table.Column<int>(type: "integer", nullable: false),
-                    WinRate = table.Column<decimal>(type: "numeric(8,4)", precision: 8, scale: 4, nullable: false),
-                    TotalReturn = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: false),
-                    MaxDrawdown = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: false),
-                    SharpeRatio = table.Column<decimal>(type: "numeric(8,4)", precision: 8, scale: 4, nullable: false),
-                    ResultData = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    BacktestRunId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TotalTrades = table.Column<int>(type: "INTEGER", nullable: false),
+                    WinRate = table.Column<decimal>(type: "TEXT", precision: 8, scale: 4, nullable: false),
+                    TotalReturn = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: false),
+                    MaxDrawdown = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: false),
+                    SharpeRatio = table.Column<decimal>(type: "TEXT", precision: 8, scale: 4, nullable: false),
+                    ResultData = table.Column<string>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

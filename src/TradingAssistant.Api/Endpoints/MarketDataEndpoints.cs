@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
@@ -7,25 +6,32 @@ using Wolverine.Http;
 
 namespace TradingAssistant.Api.Endpoints;
 
-public static class MarketDataEndpoints
+public class MarketDataEndpoints : IEndpoint
 {
-    [AllowAnonymous]
-    [WolverinePost("/api/market-data/seed")]
-    public static async Task<SeedMarketDataResponse> SeedMarketData(IMessageBus bus)
+    public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        return await bus.InvokeAsync<SeedMarketDataResponse>(new SeedMarketDataCommand());
+        var group = app.MapGroup("/api/market-data")
+            .WithTags("Market Data");
+
+        group.MapPostToWolverine<SeedMarketDataCommand, SeedMarketDataResponse>("/seed")
+            .WithSummary("Seed stocks and historical candle data")
+            .AllowAnonymous();
+
+        group.MapGet("/stocks/{symbol}/price", GetStockPrice)
+            .WithSummary("Get current price for a stock")
+            .RequireAuthorization();
+
+        group.MapGet("/stocks/{symbol}/history", GetHistoricalPrices)
+            .WithSummary("Get historical price candles for a stock")
+            .RequireAuthorization();
     }
 
-    [Authorize]
-    [WolverineGet("/api/market-data/stocks/{symbol}/price")]
-    public static async Task<StockPriceDto> GetStockPrice(string symbol, IMessageBus bus)
+    private static async Task<StockPriceDto> GetStockPrice(string symbol, IMessageBus bus)
     {
         return await bus.InvokeAsync<StockPriceDto>(new GetStockPriceQuery(symbol));
     }
 
-    [Authorize]
-    [WolverineGet("/api/market-data/stocks/{symbol}/history")]
-    public static async Task<List<CandleDto>> GetHistoricalPrices(
+    private static async Task<List<CandleDto>> GetHistoricalPrices(
         string symbol,
         DateTime startDate,
         DateTime endDate,

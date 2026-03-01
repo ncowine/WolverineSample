@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
@@ -7,37 +6,43 @@ using Wolverine.Http;
 
 namespace TradingAssistant.Api.Endpoints;
 
-public static class TradeNoteEndpoints
+public class TradeNoteEndpoints : IEndpoint
 {
-    [Authorize]
-    [WolverinePost("/api/trading/notes")]
-    public static async Task<TradeNoteDto> CreateNote(
-        CreateTradeNoteCommand command, IMessageBus bus)
+    public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        return await bus.InvokeAsync<TradeNoteDto>(command);
+        var group = app.MapGroup("/api/trading/notes")
+            .WithTags("Trade Notes")
+            .RequireAuthorization();
+
+        group.MapPostToWolverine<CreateTradeNoteCommand, TradeNoteDto>("/")
+            .WithSummary("Create a trade note on an order or position");
+
+        group.MapGet("/", GetNotes)
+            .WithSummary("Get trade notes, optionally filtered by order or position");
+
+        // Route param + body — needs manual handler
+        group.MapPut("/{noteId}", UpdateNote)
+            .WithSummary("Update an existing trade note");
+
+        group.MapDelete("/{noteId}", DeleteNote)
+            .WithSummary("Delete a trade note");
     }
 
-    [Authorize]
-    [WolverineGet("/api/trading/notes")]
-    public static async Task<List<TradeNoteDto>> GetNotes(
+    private static async Task<List<TradeNoteDto>> GetNotes(
         Guid? orderId, Guid? positionId, IMessageBus bus)
     {
         return await bus.InvokeAsync<List<TradeNoteDto>>(
             new GetTradeNotesQuery(orderId, positionId));
     }
 
-    [Authorize]
-    [WolverinePut("/api/trading/notes/{noteId}")]
-    public static async Task<TradeNoteDto> UpdateNote(
+    private static async Task<TradeNoteDto> UpdateNote(
         Guid noteId, UpdateTradeNoteCommand command, IMessageBus bus)
     {
         return await bus.InvokeAsync<TradeNoteDto>(
             command with { NoteId = noteId });
     }
 
-    [Authorize]
-    [WolverineDelete("/api/trading/notes/{noteId}")]
-    public static async Task<string> DeleteNote(
+    private static async Task<string> DeleteNote(
         Guid noteId, IMessageBus bus)
     {
         return await bus.InvokeAsync<string>(

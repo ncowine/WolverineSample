@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
@@ -7,53 +6,61 @@ using Wolverine.Http;
 
 namespace TradingAssistant.Api.Endpoints;
 
-public static class WatchlistEndpoints
+public class WatchlistEndpoints : IEndpoint
 {
-    [Authorize]
-    [WolverinePost("/api/watchlists")]
-    public static async Task<WatchlistDto> CreateWatchlist(
-        CreateWatchlistCommand command, IMessageBus bus)
+    public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        return await bus.InvokeAsync<WatchlistDto>(command);
+        var group = app.MapGroup("/api/watchlists")
+            .WithTags("Watchlists")
+            .RequireAuthorization();
+
+        group.MapPostToWolverine<CreateWatchlistCommand, WatchlistDto>("/")
+            .WithSummary("Create a new watchlist");
+
+        group.MapGet("/", GetWatchlists)
+            .WithSummary("Get all watchlists for the current user");
+
+        // Route param + body — needs manual handler
+        group.MapPost("/{watchlistId}/items", AddItem)
+            .WithSummary("Add a stock to a watchlist");
+
+        group.MapDelete("/{watchlistId}/items/{symbol}", RemoveItem)
+            .WithSummary("Remove a stock from a watchlist");
+
+        group.MapDelete("/{watchlistId}", DeleteWatchlist)
+            .WithSummary("Delete a watchlist");
+
+        group.MapGet("/{watchlistId}/prices", GetWatchlistPrices)
+            .WithSummary("Get current prices for all stocks in a watchlist");
     }
 
-    [Authorize]
-    [WolverineGet("/api/watchlists")]
-    public static async Task<List<WatchlistDto>> GetWatchlists(IMessageBus bus)
+    private static async Task<List<WatchlistDto>> GetWatchlists(IMessageBus bus)
     {
         return await bus.InvokeAsync<List<WatchlistDto>>(new GetWatchlistsQuery());
     }
 
-    [Authorize]
-    [WolverinePost("/api/watchlists/{watchlistId}/items")]
-    public static async Task<WatchlistItemDto> AddItem(
+    private static async Task<WatchlistItemDto> AddItem(
         Guid watchlistId, AddWatchlistItemCommand command, IMessageBus bus)
     {
         return await bus.InvokeAsync<WatchlistItemDto>(
             command with { WatchlistId = watchlistId });
     }
 
-    [Authorize]
-    [WolverineDelete("/api/watchlists/{watchlistId}/items/{symbol}")]
-    public static async Task<string> RemoveItem(
+    private static async Task<string> RemoveItem(
         Guid watchlistId, string symbol, IMessageBus bus)
     {
         return await bus.InvokeAsync<string>(
             new RemoveWatchlistItemCommand(watchlistId, symbol));
     }
 
-    [Authorize]
-    [WolverineDelete("/api/watchlists/{watchlistId}")]
-    public static async Task<string> DeleteWatchlist(
+    private static async Task<string> DeleteWatchlist(
         Guid watchlistId, IMessageBus bus)
     {
         return await bus.InvokeAsync<string>(
             new DeleteWatchlistCommand(watchlistId));
     }
 
-    [Authorize]
-    [WolverineGet("/api/watchlists/{watchlistId}/prices")]
-    public static async Task<List<StockPriceDto>> GetWatchlistPrices(
+    private static async Task<List<StockPriceDto>> GetWatchlistPrices(
         Guid watchlistId, IMessageBus bus)
     {
         return await bus.InvokeAsync<List<StockPriceDto>>(

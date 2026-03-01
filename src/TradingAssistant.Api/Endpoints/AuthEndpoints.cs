@@ -1,24 +1,21 @@
-using Microsoft.AspNetCore.Authorization;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
-using Wolverine;
 using Wolverine.Http;
 
 namespace TradingAssistant.Api.Endpoints;
 
-public static class AuthEndpoints
+public class AuthEndpoints : IEndpoint
 {
-    [AllowAnonymous]
-    [WolverinePost("/api/auth/register")]
-    public static async Task<AuthResponseDto> Register(RegisterUserCommand command, IMessageBus bus)
+    public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        return await bus.InvokeAsync<AuthResponseDto>(command);
-    }
+        var group = app.MapGroup("/api/auth")
+            .WithTags("Auth")
+            .AllowAnonymous();
 
-    [AllowAnonymous]
-    [WolverinePost("/api/auth/login")]
-    public static async Task<LoginResponseDto> Login(LoginUserCommand command, IMessageBus bus)
-    {
-        return await bus.InvokeAsync<LoginResponseDto>(command);
+        group.MapPostToWolverine<RegisterUserCommand, AuthResponseDto>("/register")
+            .WithSummary("Register a new user");
+
+        group.MapPostToWolverine<LoginUserCommand, LoginResponseDto>("/login")
+            .WithSummary("Login and receive a JWT token");
     }
 }
