@@ -1,0 +1,162 @@
+version: "6.0.0"
+project_name: "TradingAssistant"
+project_level: 2
+current_sprint: 3
+sprint_plan_path: "docs/sprint-plan-trading-assistant-2026-02-25.md"
+
+sprints:
+  - sprint_number: 1
+    start_date: "2026-02-25"
+    end_date: "2026-03-10"
+    capacity_points: 30
+    committed_points: 24
+    completed_points: 24
+    status: "completed"
+    goal: "Database Foundation & Authentication"
+    stories:
+      - story_id: "STORY-001"
+        title: "PostgreSQL infra & MarketData migration"
+        points: 5
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Persistent Storage"
+      - story_id: "STORY-002"
+        title: "Trading & Backtest context migrations"
+        points: 5
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Persistent Storage"
+      - story_id: "STORY-003"
+        title: "Seed data startup initializer"
+        points: 2
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Persistent Storage"
+      - story_id: "STORY-004"
+        title: "User entity & registration endpoint"
+        points: 5
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Authentication"
+      - story_id: "STORY-005"
+        title: "JWT login & token generation"
+        points: 3
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Authentication"
+      - story_id: "STORY-006"
+        title: "Auth middleware & endpoint protection"
+        points: 4
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Authentication"
+
+  - sprint_number: 2
+    start_date: "2026-03-11"
+    end_date: "2026-03-24"
+    capacity_points: 30
+    committed_points: 23
+    completed_points: 23
+    status: "completed"
+    goal: "Multi-Tenancy, Audit & Quick Wins"
+    stories:
+      - story_id: "STORY-007"
+        title: "Account-user association & data scoping"
+        points: 5
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Authentication"
+      - story_id: "STORY-008"
+        title: "Audit log entity & SaveChanges interceptor"
+        points: 5
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Audit Trail"
+      - story_id: "STORY-009"
+        title: "Audit log query endpoint"
+        points: 2
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Audit Trail"
+      - story_id: "STORY-010"
+        title: "Watchlist entity & CRUD endpoints"
+        points: 3
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Watchlists"
+      - story_id: "STORY-011"
+        title: "Watchlist price summary endpoint"
+        points: 3
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Watchlists"
+      - story_id: "STORY-018"
+        title: "Trade note entity & CRUD endpoints"
+        points: 3
+        status: "completed"
+        completion_date: "2026-02-25"
+        epic: "Trade Journal"
+      - story_id: "STORY-019"
+        title: "Trade note tagging & filtering"
+        points: 2
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Trade Journal"
+
+  - sprint_number: 3
+    start_date: "2026-03-25"
+    end_date: "2026-04-07"
+    capacity_points: 30
+    committed_points: 22
+    completed_points: 22
+    status: "completed"
+    goal: "Paper Trading & DCA Automation"
+    stories:
+      - story_id: "STORY-012"
+        title: "Paper account type & creation flow"
+        points: 3
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Paper Trading"
+      - story_id: "STORY-013"
+        title: "Paper order execution flow"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Paper Trading"
+      - story_id: "STORY-014"
+        title: "Paper portfolio tracking"
+        points: 3
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "Paper Trading"
+      - story_id: "STORY-015"
+        title: "DCA plan entity & creation endpoint"
+        points: 3
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "DCA Automation"
+      - story_id: "STORY-016"
+        title: "DCA scheduled execution (BackgroundService)"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "DCA Automation"
+      - story_id: "STORY-017"
+        title: "DCA plan management"
+        points: 3
+        status: "completed"
+        completion_date: "2026-03-01"
+        epic: "DCA Automation"
+
+velocity:
+  sprint_1: 24
+  sprint_2: 23
+  sprint_3: 22
+  rolling_average: 23
+
+team:
+  size: 1
+  experience: "senior"
+  sprint_length_weeks: 2
+  capacity_per_sprint: 30
