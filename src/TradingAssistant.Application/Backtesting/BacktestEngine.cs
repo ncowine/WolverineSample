@@ -23,6 +23,8 @@ public class BacktestEngine
     private readonly List<EquityPoint> _equityCurve = new();
     private readonly List<string> _log = new();
     private IReadOnlyDictionary<string, decimal>? _correlationData;
+    private string? _currentRegime;
+    private decimal? _currentRegimeConfidence;
 
     public BacktestEngine(StrategyDefinition strategy, BacktestConfig? config = null)
     {
@@ -39,6 +41,16 @@ public class BacktestEngine
     public void SetCorrelationData(IReadOnlyDictionary<string, decimal> correlations)
     {
         _correlationData = correlations;
+    }
+
+    /// <summary>
+    /// Set current market regime for circuit breaker resume gating.
+    /// Call before Run() or update during multi-symbol backtesting.
+    /// </summary>
+    public void SetRegimeContext(string regime, decimal confidence)
+    {
+        _currentRegime = regime;
+        _currentRegimeConfidence = confidence;
     }
 
     /// <summary>
@@ -409,25 +421,29 @@ public class BacktestEngine
         var equity = _cash + positionsValue;
         _equityCurve.Add(new EquityPoint(bar.Timestamp, equity));
 
-        // Update peak and circuit breaker state
+        // Update peak equity
         if (equity > _peakEquity)
             _peakEquity = equity;
 
-        var drawdownPercent = _peakEquity > 0 ? (_peakEquity - equity) / _peakEquity * 100m : 0;
+        // Evaluate circuit breaker with regime context
+        var eval = CircuitBreaker.Evaluate(
+            equity, _peakEquity, _circuitBreakerActive,
+            _strategy.PositionSizing.MaxDrawdownPercent,
+            _strategy.PositionSizing.DrawdownRecoveryPercent,
+            _currentRegime, _currentRegimeConfidence);
 
-        if (!_circuitBreakerActive && drawdownPercent >= _strategy.PositionSizing.MaxDrawdownPercent)
+        if (eval.ShouldActivate)
         {
             _circuitBreakerActive = true;
-            _log.Add($"{bar.Timestamp:yyyy-MM-dd} CIRCUIT BREAKER ACTIVATED: drawdown {drawdownPercent:F1}% >= {_strategy.PositionSizing.MaxDrawdownPercent}% (peak={_peakEquity:F2}, current={equity:F2})");
+            var cancelled = CircuitBreaker.CancelPendingOrders(_pendingOrders);
+            _log.Add($"{bar.Timestamp:yyyy-MM-dd} CIRCUIT BREAKER {eval.Detail}");
+            if (cancelled > 0)
+                _log.Add($"{bar.Timestamp:yyyy-MM-dd} CANCELLED {cancelled} pending order(s)");
         }
-        else if (_circuitBreakerActive)
+        else if (eval.ShouldDeactivate)
         {
-            var recoveryThreshold = _peakEquity * (1 - _strategy.PositionSizing.DrawdownRecoveryPercent / 100m);
-            if (equity >= recoveryThreshold)
-            {
-                _circuitBreakerActive = false;
-                _log.Add($"{bar.Timestamp:yyyy-MM-dd} CIRCUIT BREAKER DEACTIVATED: equity {equity:F2} recovered to within {_strategy.PositionSizing.DrawdownRecoveryPercent}% of peak {_peakEquity:F2}");
-            }
+            _circuitBreakerActive = false;
+            _log.Add($"{bar.Timestamp:yyyy-MM-dd} CIRCUIT BREAKER {eval.Detail}");
         }
     }
 

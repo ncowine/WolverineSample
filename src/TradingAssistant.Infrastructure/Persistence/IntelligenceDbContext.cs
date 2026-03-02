@@ -14,6 +14,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<CorrelationSnapshot> CorrelationSnapshots => Set<CorrelationSnapshot>();
     public DbSet<CostProfile> CostProfiles => Set<CostProfile>();
     public DbSet<PipelineRunLog> PipelineRunLogs => Set<PipelineRunLog>();
+    public DbSet<CircuitBreakerEvent> CircuitBreakerEvents => Set<CircuitBreakerEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -123,6 +124,21 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.StepName).HasMaxLength(100).IsRequired();
             entity.Property(e => e.ErrorMessage).HasMaxLength(2000);
             entity.HasIndex(e => new { e.MarketCode, e.RunDate });
+        });
+
+        modelBuilder.Entity<CircuitBreakerEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.AccountId).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.EventType).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.PeakEquity).HasPrecision(18, 2);
+            entity.Property(e => e.CurrentEquity).HasPrecision(18, 2);
+            entity.Property(e => e.DrawdownPercent).HasPrecision(8, 4);
+            entity.Property(e => e.ThresholdPercent).HasPrecision(8, 4);
+            entity.Property(e => e.RegimeAtEvent).HasMaxLength(30);
+            entity.Property(e => e.RegimeConfidence).HasPrecision(8, 4);
+            entity.Property(e => e.DeactivationReason).HasMaxLength(200);
+            entity.HasIndex(e => new { e.AccountId, e.EventDate });
         });
     }
 }
