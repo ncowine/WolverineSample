@@ -443,7 +443,7 @@ sprints:
     goal: "Operations + Claude Setup"
     capacity_points: 30
     committed_points: 24
-    completed_points: 16
+    completed_points: 21
     stories:
       - story_id: "STORY-057"
         title: "Data Quality Monitor"
@@ -466,7 +466,8 @@ sprints:
       - story_id: "STORY-060"
         title: "Claude API Integration & Prompt Templates"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-02"
         epic: "Claude Strategy Engine"
       - story_id: "STORY-070"
         title: "Tournament & Claude API Endpoints"
