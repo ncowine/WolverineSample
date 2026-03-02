@@ -23,6 +23,7 @@ public class BacktestEngine
     private readonly List<EquityPoint> _equityCurve = new();
     private readonly List<string> _log = new();
     private IReadOnlyDictionary<string, decimal>? _correlationData;
+    private IReadOnlyDictionary<string, string>? _symbolToMarket;
     private string? _currentRegime;
     private decimal? _currentRegimeConfidence;
 
@@ -41,6 +42,15 @@ public class BacktestEngine
     public void SetCorrelationData(IReadOnlyDictionary<string, decimal> correlations)
     {
         _correlationData = correlations;
+    }
+
+    /// <summary>
+    /// Provide symbol-to-market mapping for geographic risk budget enforcement.
+    /// Keys are stock symbols, values are market codes (e.g. "US_SP500", "IN_NIFTY50").
+    /// </summary>
+    public void SetMarketMapping(IReadOnlyDictionary<string, string> symbolToMarket)
+    {
+        _symbolToMarket = symbolToMarket;
     }
 
     /// <summary>
@@ -288,6 +298,28 @@ public class BacktestEngine
                     return;
                 }
                 _log.Add($"{bar.Timestamp:yyyy-MM-dd} REDUCED to {shares} shares (corr multiplier={corrCheck.SizeMultiplier:F4})");
+            }
+        }
+
+        // Geographic risk budget: block if market allocation would exceed limit
+        if (_strategy.PositionSizing.UseGeographicRiskBudget && _symbolToMarket != null)
+        {
+            var posNotionals = _openPositions
+                .Select(p => (p.Symbol, Notional: p.MarketValue(bar.Close)))
+                .ToList();
+            var marketNotionals = GeographicRiskBudget.ComputeMarketNotionals(posNotionals, _symbolToMarket);
+            var candidateMarket = _symbolToMarket.GetValueOrDefault(symbol, "UNKNOWN");
+            var proposedNotional = shares * bar.Close;
+            var geoCheck = GeographicRiskBudget.Check(
+                candidateMarket, proposedNotional, marketNotionals, equity,
+                _strategy.PositionSizing.MaxMarketAllocationPercent);
+
+            _log.Add($"{bar.Timestamp:yyyy-MM-dd} GEO BUDGET {symbol}: {geoCheck.Detail}");
+
+            if (!geoCheck.Allowed)
+            {
+                _log.Add($"{bar.Timestamp:yyyy-MM-dd} SKIP ENTRY: geographic budget exceeded for {candidateMarket}");
+                return;
             }
         }
 

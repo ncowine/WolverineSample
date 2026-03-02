@@ -180,6 +180,17 @@ public class PositionSizingConfig
     /// Size scales linearly from 100% at this threshold to 0% at BlockThreshold.
     /// </summary>
     public decimal CorrelationReduceThreshold { get; set; } = 0.5m;
+
+    /// <summary>
+    /// Enable geographic risk budget: block entry if adding a position
+    /// would exceed the max allocation for its market/region.
+    /// </summary>
+    public bool UseGeographicRiskBudget { get; set; }
+
+    /// <summary>
+    /// Maximum notional allocation per market as % of total equity (default 50%).
+    /// </summary>
+    public decimal MaxMarketAllocationPercent { get; set; } = 50m;
 }
 
 public class TradeFilterConfig
