@@ -327,7 +327,7 @@ public class CostProfileHandlerTests
             CommissionPerShare = 0.005m, SpreadEstimatePercent = 0.10m
         });
         await db.SaveChangesAsync();
-        var profile = db.CostProfiles.First();
+        var profile = db.CostProfiles.First(p => p.MarketCode == "UK_FTSE100");
 
         var cmd = new UpdateCostProfileCommand(profile.Id, CommissionPerShare: 0.01m);
 
@@ -356,7 +356,7 @@ public class CostProfileHandlerTests
 
         db.CostProfiles.Add(new CostProfile { MarketCode = "UK_FTSE100", Name = "UK Equities" });
         await db.SaveChangesAsync();
-        var profile = db.CostProfiles.First();
+        var profile = db.CostProfiles.First(p => p.MarketCode == "UK_FTSE100");
 
         var cmd = new UpdateCostProfileCommand(profile.Id, IsActive: false);
 
@@ -379,11 +379,14 @@ public class CostProfileHandlerTests
 
         var result = await GetCostProfilesHandler.HandleAsync(new GetCostProfilesQuery(), db);
 
-        Assert.Equal(3, result.Count);
+        // 3 added + 2 seed (US, India) = 5
+        Assert.Equal(5, result.Count);
         Assert.Equal("AU_ASX200", result[0].MarketCode);
-        Assert.Equal("UK_FTSE100", result[1].MarketCode);
-        Assert.Equal("Plan A", result[1].Name);
-        Assert.Equal("Plan B", result[2].Name);
+        // Verify UK entries are ordered by name
+        var ukEntries = result.Where(r => r.MarketCode == "UK_FTSE100").ToList();
+        Assert.Equal(2, ukEntries.Count);
+        Assert.Equal("Plan A", ukEntries[0].Name);
+        Assert.Equal("Plan B", ukEntries[1].Name);
     }
 
     [Fact]
@@ -403,12 +406,13 @@ public class CostProfileHandlerTests
     }
 
     [Fact]
-    public async Task GetAll_NoCostProfiles_ReturnsEmptyList()
+    public async Task GetAll_NoCostProfiles_ReturnsSeedDataOnly()
     {
         await using var db = CreateDb();
 
         var result = await GetCostProfilesHandler.HandleAsync(new GetCostProfilesQuery(), db);
 
-        Assert.Empty(result);
+        // Only seed data (US + India defaults) should be present
+        Assert.Equal(2, result.Count);
     }
 }

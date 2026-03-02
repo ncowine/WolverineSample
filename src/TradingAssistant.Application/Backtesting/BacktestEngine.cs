@@ -24,6 +24,7 @@ public class BacktestEngine
     private readonly List<string> _log = new();
     private IReadOnlyDictionary<string, decimal>? _correlationData;
     private IReadOnlyDictionary<string, string>? _symbolToMarket;
+    private CostProfileData? _costProfile;
     private string? _currentRegime;
     private decimal? _currentRegimeConfidence;
 
@@ -51,6 +52,15 @@ public class BacktestEngine
     public void SetMarketMapping(IReadOnlyDictionary<string, string> symbolToMarket)
     {
         _symbolToMarket = symbolToMarket;
+    }
+
+    /// <summary>
+    /// Set market-specific cost profile for realistic transaction cost modeling.
+    /// When set, replaces the flat CommissionPerTrade with per-share and percent-based fees.
+    /// </summary>
+    public void SetCostProfile(CostProfileData costProfile)
+    {
+        _costProfile = costProfile;
     }
 
     /// <summary>
@@ -130,7 +140,8 @@ public class BacktestEngine
 
             if (order.Side == OrderSide.Buy)
             {
-                var cost = order.Shares * fillPrice + _config.CommissionPerTrade;
+                var entryCost = GetTradeCost(fillPrice, order.Shares);
+                var cost = order.Shares * fillPrice + entryCost;
                 if (cost > _cash)
                 {
                     _log.Add($"{bar.Timestamp:yyyy-MM-dd} SKIP BUY {order.Symbol}: insufficient cash ({_cash:C} < {cost:C})");
@@ -324,11 +335,14 @@ public class BacktestEngine
         }
 
         // Check if we have enough cash for the order (rough estimate)
-        var estimatedCost = shares * bar.Close * (1 + _config.SlippagePercent / 100m) + _config.CommissionPerTrade;
+        var estCommission = GetTradeCost(bar.Close, shares);
+        var estimatedCost = shares * bar.Close * (1 + _config.SlippagePercent / 100m) + estCommission;
         if (estimatedCost > _cash)
         {
             // Reduce share count to fit available cash
-            shares = (int)((_cash - _config.CommissionPerTrade) / (bar.Close * (1 + _config.SlippagePercent / 100m)));
+            var costPerShare = bar.Close * (1 + _config.SlippagePercent / 100m);
+            var availableForShares = _cash - GetTradeCost(bar.Close, 1); // rough reserve for commission
+            shares = (int)(availableForShares / costPerShare);
             if (shares <= 0)
             {
                 _log.Add($"{bar.Timestamp:yyyy-MM-dd} SKIP ENTRY: insufficient cash");
@@ -414,12 +428,25 @@ public class BacktestEngine
         return true;
     }
 
+    /// <summary>
+    /// Get the cost for a single trade leg using cost profile or flat commission fallback.
+    /// </summary>
+    private decimal GetTradeCost(decimal price, int shares)
+    {
+        if (_costProfile != null)
+            return MarketCostCalculator.EstimateTradeCost(price, shares, _costProfile);
+        return _config.CommissionPerTrade;
+    }
+
     private void ClosePosition(Position pos, DateTime exitDate, decimal exitPrice, string reason)
     {
-        var proceeds = pos.Shares * exitPrice - _config.CommissionPerTrade;
+        var exitCost = GetTradeCost(exitPrice, pos.Shares);
+        var entryCost = GetTradeCost(pos.EntryPrice, pos.Shares);
+        var proceeds = pos.Shares * exitPrice - exitCost;
         _cash += proceeds;
 
-        var pnl = pos.Shares * (exitPrice - pos.EntryPrice) - 2 * _config.CommissionPerTrade;
+        var totalCost = entryCost + exitCost;
+        var pnl = pos.Shares * (exitPrice - pos.EntryPrice) - totalCost;
         var pnlPercent = pos.EntryPrice != 0 ? (exitPrice - pos.EntryPrice) / pos.EntryPrice * 100m : 0;
 
         _trades.Add(new TradeRecord
@@ -432,7 +459,7 @@ public class BacktestEngine
             Shares = pos.Shares,
             PnL = pnl,
             PnLPercent = pnlPercent,
-            Commission = 2 * _config.CommissionPerTrade,
+            Commission = totalCost,
             HoldingDays = (exitDate - pos.EntryDate).Days,
             ExitReason = reason
         });

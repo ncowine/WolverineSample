@@ -22,4 +22,24 @@ public class BacktestEngineResult
     public decimal TotalReturn => InitialCapital == 0 ? 0 : (FinalEquity - InitialCapital) / InitialCapital * 100;
     public decimal TotalPnL => Trades.Sum(t => t.PnL);
     public decimal TotalCommissions => Trades.Sum(t => t.Commission);
+
+    /// <summary>
+    /// Gross PnL before transaction costs (TotalPnL + TotalCommissions).
+    /// </summary>
+    public decimal GrossPnL => TotalPnL + TotalCommissions;
+
+    /// <summary>
+    /// Gross return % before transaction costs.
+    /// </summary>
+    public decimal GrossReturn => InitialCapital == 0 ? 0 : GrossPnL / InitialCapital * 100;
+
+    /// <summary>
+    /// Net return % after all transaction costs (same as TotalReturn, for clarity).
+    /// </summary>
+    public decimal NetReturn => TotalReturn;
+
+    /// <summary>
+    /// Cost drag: difference between gross and net return in percentage points.
+    /// </summary>
+    public decimal CostDrag => GrossReturn - NetReturn;
 }

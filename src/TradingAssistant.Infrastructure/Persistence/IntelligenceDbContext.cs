@@ -115,6 +115,33 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.TaxPercent).HasPrecision(8, 4);
             entity.Property(e => e.SpreadEstimatePercent).HasPrecision(8, 4);
             entity.HasIndex(e => new { e.MarketCode, e.IsActive });
+
+            entity.HasData(
+                new CostProfile
+                {
+                    Id = Guid.Parse("b2c3d4e5-0001-0001-0001-000000000001"),
+                    MarketCode = "US_SP500",
+                    Name = "US Equities (default)",
+                    CommissionPerShare = 0.005m,
+                    CommissionPercent = 0m,
+                    ExchangeFeePercent = 0m,
+                    TaxPercent = 0m,
+                    SpreadEstimatePercent = 0.1m,
+                    IsActive = true
+                },
+                new CostProfile
+                {
+                    Id = Guid.Parse("b2c3d4e5-0001-0001-0001-000000000002"),
+                    MarketCode = "IN_NIFTY50",
+                    Name = "India Equities (default)",
+                    CommissionPerShare = 0m,
+                    CommissionPercent = 0.03m,
+                    ExchangeFeePercent = 0m,
+                    TaxPercent = 0.025m,
+                    SpreadEstimatePercent = 0.05m,
+                    IsActive = true
+                }
+            );
         });
 
         modelBuilder.Entity<PipelineRunLog>(entity =>

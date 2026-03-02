@@ -181,7 +181,7 @@ public class IntelligenceDbContextTests
         db.CostProfiles.Add(costProfile);
         await db.SaveChangesAsync();
 
-        var loaded = await db.CostProfiles.FirstAsync();
+        var loaded = await db.CostProfiles.FirstAsync(p => p.Id == costProfile.Id);
 
         Assert.Equal("IN_NIFTY50", loaded.MarketCode);
         Assert.Equal(0.03m, loaded.CommissionPercent);
