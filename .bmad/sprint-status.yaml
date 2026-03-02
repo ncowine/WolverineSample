@@ -394,16 +394,17 @@ sprints:
         epic: "Market Intelligence"
 
   - sprint_number: 11
-    status: "not_started"
+    status: "in_progress"
     goal: "Risk & Portfolio Intelligence"
     capacity_points: 30
     committed_points: 24
-    completed_points: 0
+    completed_points: 5
     stories:
       - story_id: "STORY-051"
         title: "Kelly-Based Position Sizing"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-02"
         epic: "Risk & Portfolio"
       - story_id: "STORY-052"
         title: "Volatility-Targeted Sizing"

@@ -1,4 +1,5 @@
 using TradingAssistant.Application.Indicators;
+using TradingAssistant.Application.Intelligence;
 using TradingAssistant.Contracts.Backtesting;
 
 namespace TradingAssistant.Application.Backtesting;
@@ -218,7 +219,8 @@ public class BacktestEngine
             return;
         }
 
-        var riskAmount = equity * _strategy.PositionSizing.RiskPercent / 100m;
+        var riskPercent = CalculateRiskPercent(equity, heatPercent);
+        var riskAmount = equity * riskPercent / 100m;
         var shares = (int)(riskAmount / riskPerShare);
         if (shares <= 0)
         {
@@ -259,6 +261,27 @@ public class BacktestEngine
 
         _pendingOrders.Add(order);
         _log.Add($"{bar.Timestamp:yyyy-MM-dd} SIGNAL BUY {shares} {symbol} (pending fill tomorrow)");
+    }
+
+    private decimal CalculateRiskPercent(decimal equity, decimal currentHeatPercent)
+    {
+        var sizing = _strategy.PositionSizing;
+
+        if (!string.Equals(sizing.SizingMethod, "Kelly", StringComparison.OrdinalIgnoreCase))
+            return sizing.RiskPercent;
+
+        var tradePnls = _trades.Select(t => t.PnL).ToList();
+
+        var result = KellyCriterion.CalculatePositionRisk(
+            tradePnls,
+            equity,
+            currentHeatPercent,
+            sizing.MaxPortfolioHeat,
+            fixedRiskPercent: sizing.RiskPercent,
+            kellyMultiplier: sizing.KellyMultiplier,
+            windowSize: sizing.KellyWindowSize);
+
+        return result.RiskPercent;
     }
 
     private decimal CalculateStopLoss(decimal price, CandleWithIndicators bar)

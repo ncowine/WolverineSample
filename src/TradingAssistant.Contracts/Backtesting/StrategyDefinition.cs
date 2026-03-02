@@ -109,7 +109,13 @@ public class TakeProfitConfig
 public class PositionSizingConfig
 {
     /// <summary>
+    /// Sizing method: "Fixed" (default) or "Kelly" (Kelly Criterion-based).
+    /// </summary>
+    public string SizingMethod { get; set; } = "Fixed";
+
+    /// <summary>
     /// Percentage of account to risk per trade (default 1%).
+    /// Also serves as the upper cap for Kelly-based sizing.
     /// </summary>
     public decimal RiskPercent { get; set; } = 1m;
 
@@ -133,6 +139,17 @@ public class PositionSizingConfig
     /// E.g. 5 means resume when equity >= peak * 0.95.
     /// </summary>
     public decimal DrawdownRecoveryPercent { get; set; } = 5m;
+
+    /// <summary>
+    /// Kelly fraction multiplier (default 0.5 = half-Kelly for safety).
+    /// Only used when SizingMethod = "Kelly".
+    /// </summary>
+    public decimal KellyMultiplier { get; set; } = 0.5m;
+
+    /// <summary>
+    /// Rolling window of closed trades for Kelly calculation.
+    /// </summary>
+    public int KellyWindowSize { get; set; } = 50;
 }
 
 public class TradeFilterConfig
