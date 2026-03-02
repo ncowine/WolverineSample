@@ -480,7 +480,7 @@ sprints:
     goal: "Claude Strategy Engine"
     capacity_points: 30
     committed_points: 23
-    completed_points: 13
+    completed_points: 18
     stories:
       - story_id: "STORY-061"
         title: "Strategy Generator"
@@ -497,7 +497,8 @@ sprints:
       - story_id: "STORY-063"
         title: "Market-Specific Playbooks"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-02"
         epic: "Claude Strategy Engine"
       - story_id: "STORY-064"
         title: "Strategy Autopsy"

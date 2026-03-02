@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using TradingAssistant.Application.Handlers.Intelligence;
+using TradingAssistant.Contracts;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
+using TradingAssistant.Infrastructure.Persistence;
 using TradingAssistant.SharedKernel;
 using Wolverine;
 using Wolverine.Http;
@@ -27,6 +31,12 @@ public class BacktestEndpoints : IEndpoint
 
         strategies.MapGet("/{strategyId}/optimized-params", GetOptimizedParams)
             .WithSummary("Get current and historical optimized parameters for a strategy");
+
+        strategies.MapGet("/templates/{marketCode}", GetTemplates)
+            .WithSummary("Get pre-built strategy templates (playbooks) for a market");
+
+        strategies.MapPost("/templates/generate", GeneratePlaybooks)
+            .WithSummary("Generate market-specific strategy templates using AI (with hardcoded fallback)");
 
         var backtests = app.MapGroup("/api/backtests")
             .WithTags("Backtests")
@@ -88,5 +98,22 @@ public class BacktestEndpoints : IEndpoint
     {
         return await bus.InvokeAsync<OptimizedParamsResponse>(
             new GetOptimizedParamsQuery(strategyId));
+    }
+
+    private static async Task<IReadOnlyList<StrategyV2Dto>> GetTemplates(
+        [FromRoute] string marketCode,
+        BacktestDbContext db)
+    {
+        return await GetTemplatesHandler.HandleAsync(new GetTemplatesQuery(marketCode), db);
+    }
+
+    private static async Task<GeneratePlaybooksResultDto> GeneratePlaybooks(
+        [FromBody] GeneratePlaybooksCommand command,
+        IClaudeClient claude,
+        BacktestDbContext backtestDb,
+        IntelligenceDbContext intelligenceDb,
+        ILogger<GeneratePlaybooksHandler> logger)
+    {
+        return await GeneratePlaybooksHandler.HandleAsync(command, claude, backtestDb, intelligenceDb, logger);
     }
 }

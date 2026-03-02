@@ -19,6 +19,20 @@ public class Strategy : BaseEntity
     /// </summary>
     public bool UsesV2Engine => !string.IsNullOrWhiteSpace(RulesJson);
 
+    // ── Template / Playbook fields ──────────────────────────────
+
+    /// <summary>True if this is a pre-built template (playbook), not a user strategy.</summary>
+    public bool IsTemplate { get; set; }
+
+    /// <summary>Market code this template targets (e.g. "US", "IN"). Null for non-templates.</summary>
+    public string? TemplateMarketCode { get; set; }
+
+    /// <summary>Template archetype: "Momentum", "MeanReversion", "Breakout". Null for non-templates.</summary>
+    public string? TemplateType { get; set; }
+
+    /// <summary>Comma-separated optimal regimes (e.g. "Bull,Sideways"). Null for non-templates.</summary>
+    public string? TemplateRegimes { get; set; }
+
     // Legacy v1 rules (backward compatible)
     public ICollection<StrategyRule> Rules { get; set; } = new List<StrategyRule>();
     public ICollection<BacktestRun> BacktestRuns { get; set; } = new List<BacktestRun>();

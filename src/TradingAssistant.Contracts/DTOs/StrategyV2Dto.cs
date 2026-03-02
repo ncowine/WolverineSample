@@ -13,4 +13,8 @@ public record StrategyV2Dto(
     int ExitConditionCount,
     string StopLossDescription,
     string TakeProfitDescription,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    bool IsTemplate = false,
+    string? TemplateMarketCode = null,
+    string? TemplateType = null,
+    string? TemplateRegimes = null);

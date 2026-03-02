@@ -22,6 +22,10 @@ public class BacktestDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.RulesJson).HasMaxLength(8000);
             entity.Ignore(e => e.UsesV2Engine);
+            entity.Property(e => e.TemplateMarketCode).HasMaxLength(10);
+            entity.Property(e => e.TemplateType).HasMaxLength(30);
+            entity.Property(e => e.TemplateRegimes).HasMaxLength(100);
+            entity.HasIndex(e => new { e.IsTemplate, e.TemplateMarketCode });
         });
 
         modelBuilder.Entity<StrategyRule>(entity =>

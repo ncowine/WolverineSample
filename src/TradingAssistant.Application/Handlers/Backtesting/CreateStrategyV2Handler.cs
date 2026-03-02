@@ -48,7 +48,11 @@ public class CreateStrategyV2Handler
             ExitConditionCount: definition?.ExitConditions.Sum(g => g.Conditions.Count) ?? 0,
             StopLossDescription: FormatStopLoss(definition?.StopLoss),
             TakeProfitDescription: FormatTakeProfit(definition?.TakeProfit),
-            CreatedAt: strategy.CreatedAt);
+            CreatedAt: strategy.CreatedAt,
+            IsTemplate: strategy.IsTemplate,
+            TemplateMarketCode: strategy.TemplateMarketCode,
+            TemplateType: strategy.TemplateType,
+            TemplateRegimes: strategy.TemplateRegimes);
     }
 
     internal static StrategyDefinition? DeserializeDefinition(string? rulesJson)
