@@ -16,6 +16,8 @@ public class IntelligenceDbContext : DbContext
     public DbSet<PipelineRunLog> PipelineRunLogs => Set<PipelineRunLog>();
     public DbSet<CircuitBreakerEvent> CircuitBreakerEvents => Set<CircuitBreakerEvent>();
     public DbSet<TournamentEntry> TournamentEntries => Set<TournamentEntry>();
+    public DbSet<StrategyAssignment> StrategyAssignments => Set<StrategyAssignment>();
+    public DbSet<StrategyRegimeScore> StrategyRegimeScores => Set<StrategyRegimeScore>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -181,6 +183,23 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.RetirementReason).HasMaxLength(500);
             entity.HasIndex(e => new { e.Status, e.MarketCode });
             entity.HasIndex(e => e.StrategyId);
+        });
+
+        modelBuilder.Entity<StrategyAssignment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.StrategyName).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.AllocationPercent).HasPrecision(8, 2);
+            entity.HasIndex(e => e.MarketCode).IsUnique();
+        });
+
+        modelBuilder.Entity<StrategyRegimeScore>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.SharpeRatio).HasPrecision(8, 4);
+            entity.HasIndex(e => new { e.StrategyId, e.MarketCode, e.Regime }).IsUnique();
         });
     }
 }
