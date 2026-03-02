@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using TradingAssistant.Application.Handlers.Intelligence;
+using TradingAssistant.Contracts;
+using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
 using TradingAssistant.Infrastructure.Persistence;
@@ -19,6 +22,9 @@ public class FeedbackEndpoints : IEndpoint
 
         group.MapGet("/pipeline-status/{marketCode}", GetPipelineStatusByMarket)
             .WithSummary("Get latest pipeline run status for a specific market");
+
+        group.MapPost("/generate-strategy", GenerateStrategy)
+            .WithSummary("Generate a trading strategy using AI with auto-backtest validation");
     }
 
     private static async Task<IReadOnlyList<PipelineRunStatusDto>> GetPipelineStatus(
@@ -33,5 +39,15 @@ public class FeedbackEndpoints : IEndpoint
     {
         return await GetPipelineStatusHandler.HandleAsync(
             new GetPipelineStatusQuery(marketCode), db);
+    }
+
+    private static async Task<GenerateStrategyResultDto> GenerateStrategy(
+        [FromBody] GenerateStrategyCommand command,
+        IClaudeClient claude,
+        MarketDataDbContext marketDb,
+        BacktestDbContext backtestDb,
+        ILogger<GenerateStrategyHandler> logger)
+    {
+        return await GenerateStrategyHandler.HandleAsync(command, claude, marketDb, backtestDb, logger);
     }
 }

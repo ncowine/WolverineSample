@@ -476,16 +476,17 @@ sprints:
         epic: "Strategy Tournament"
 
   - sprint_number: 13
-    status: "not_started"
+    status: "in_progress"
     goal: "Claude Strategy Engine"
     capacity_points: 30
     committed_points: 23
-    completed_points: 0
+    completed_points: 8
     stories:
       - story_id: "STORY-061"
         title: "Strategy Generator"
         points: 8
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-02"
         epic: "Claude Strategy Engine"
       - story_id: "STORY-062"
         title: "Regime-Based Strategy Selection"
