@@ -221,7 +221,19 @@ public class BacktestEngine
 
         var riskPercent = CalculateRiskPercent(equity, heatPercent);
         var riskAmount = equity * riskPercent / 100m;
-        var shares = (int)(riskAmount / riskPerShare);
+
+        // Vol-targeting: use ATR × multiplier as risk-per-share instead of price - stop
+        int shares;
+        if (_strategy.PositionSizing.UseVolTargeting && bar.Indicators.Atr > 0)
+        {
+            shares = VolatilityTargeting.CalculateShares(
+                riskAmount, bar.Indicators.Atr, _strategy.PositionSizing.VolTargetAtrMultiplier);
+        }
+        else
+        {
+            shares = (int)(riskAmount / riskPerShare);
+        }
+
         if (shares <= 0)
         {
             _log.Add($"{bar.Timestamp:yyyy-MM-dd} SKIP ENTRY: calculated 0 shares");

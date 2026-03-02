@@ -150,6 +150,19 @@ public class PositionSizingConfig
     /// Rolling window of closed trades for Kelly calculation.
     /// </summary>
     public int KellyWindowSize { get; set; } = 50;
+
+    /// <summary>
+    /// Enable volatility-targeted sizing: shares = riskDollars / (ATR × multiplier).
+    /// Layers on top of Kelly or Fixed: risk budget comes from SizingMethod,
+    /// vol-targeting converts that budget into share count.
+    /// </summary>
+    public bool UseVolTargeting { get; set; }
+
+    /// <summary>
+    /// ATR multiplier for vol-targeted sizing (default 2.0).
+    /// Separate from StopLoss ATR multiplier so sizing and stops can diverge.
+    /// </summary>
+    public decimal VolTargetAtrMultiplier { get; set; } = 2m;
 }
 
 public class TradeFilterConfig

@@ -398,7 +398,7 @@ sprints:
     goal: "Risk & Portfolio Intelligence"
     capacity_points: 30
     committed_points: 24
-    completed_points: 5
+    completed_points: 8
     stories:
       - story_id: "STORY-051"
         title: "Kelly-Based Position Sizing"
@@ -409,7 +409,8 @@ sprints:
       - story_id: "STORY-052"
         title: "Volatility-Targeted Sizing"
         points: 3
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-02"
         epic: "Risk & Portfolio"
       - story_id: "STORY-053"
         title: "Correlation-Aware Allocation"
