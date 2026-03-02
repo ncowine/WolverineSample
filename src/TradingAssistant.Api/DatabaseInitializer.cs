@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TradingAssistant.Domain.Enums;
 using TradingAssistant.Domain.Identity;
+using TradingAssistant.Domain.Intelligence;
 using TradingAssistant.Domain.MarketData;
 using TradingAssistant.Domain.Trading;
 using TradingAssistant.Infrastructure.Persistence;
@@ -17,14 +18,16 @@ public static class DatabaseInitializer
         using var scope = app.Services.CreateScope();
         var services = scope.ServiceProvider;
 
-        // Apply pending migrations for all 3 contexts
+        // Apply pending migrations for all 4 contexts
         var marketDb = services.GetRequiredService<MarketDataDbContext>();
         var tradingDb = services.GetRequiredService<TradingDbContext>();
         var backtestDb = services.GetRequiredService<BacktestDbContext>();
+        var intelligenceDb = services.GetRequiredService<IntelligenceDbContext>();
 
         await marketDb.Database.MigrateAsync();
         await tradingDb.Database.MigrateAsync();
         await backtestDb.Database.MigrateAsync();
+        await intelligenceDb.Database.MigrateAsync();
 
         // Seed data if not already present
         if (await marketDb.Stocks.AnyAsync())
@@ -136,5 +139,57 @@ public static class DatabaseInitializer
         tradingDb.Portfolios.Add(portfolio);
 
         await tradingDb.SaveChangesAsync();
+
+        // Seed default market profiles and cost profiles
+        if (!await intelligenceDb.MarketProfiles.AnyAsync())
+        {
+            intelligenceDb.MarketProfiles.AddRange(
+                new MarketProfile
+                {
+                    MarketCode = "US_SP500",
+                    Exchange = "NYSE/NASDAQ",
+                    Currency = "USD",
+                    Timezone = "America/New_York",
+                    VixSymbol = "^VIX",
+                    DataSource = "yahoo",
+                    ConfigJson = """{"tradingHours":{"open":"09:30","close":"16:00"},"regimeThresholds":{"highVol":30,"bullBreadth":0.60,"bearBreadth":0.40}}"""
+                },
+                new MarketProfile
+                {
+                    MarketCode = "IN_NIFTY50",
+                    Exchange = "NSE",
+                    Currency = "INR",
+                    Timezone = "Asia/Kolkata",
+                    VixSymbol = "^INDIAVIX",
+                    DataSource = "yahoo",
+                    ConfigJson = """{"tradingHours":{"open":"09:15","close":"15:30"},"regimeThresholds":{"highVol":25,"bullBreadth":0.55,"bearBreadth":0.35}}"""
+                }
+            );
+
+            intelligenceDb.CostProfiles.AddRange(
+                new CostProfile
+                {
+                    MarketCode = "US_SP500",
+                    Name = "US Equities (Default)",
+                    CommissionPerShare = 0.005m,
+                    CommissionPercent = 0m,
+                    ExchangeFeePercent = 0m,
+                    TaxPercent = 0m,
+                    SpreadEstimatePercent = 0.10m
+                },
+                new CostProfile
+                {
+                    MarketCode = "IN_NIFTY50",
+                    Name = "India Equities (Default)",
+                    CommissionPerShare = 0m,
+                    CommissionPercent = 0.03m,
+                    ExchangeFeePercent = 0.00345m,
+                    TaxPercent = 0.025m,
+                    SpreadEstimatePercent = 0.05m
+                }
+            );
+
+            await intelligenceDb.SaveChangesAsync();
+        }
     }
 }

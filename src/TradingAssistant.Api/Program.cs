@@ -30,6 +30,9 @@ builder.Services.AddDbContext<TradingDbContext>((sp, options) =>
 builder.Services.AddDbContext<BacktestDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("BacktestDb")));
 
+builder.Services.AddDbContext<IntelligenceDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("IntelligenceDb")));
+
 // Register caches as singletons (DataCache starts background tasks in constructor)
 builder.Services.AddSingleton<StockPriceCache>();
 builder.Services.AddSingleton<BacktestResultCache>();

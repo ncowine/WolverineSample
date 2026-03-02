@@ -1,9 +1,9 @@
 version: "6.0.0"
 project_name: "TradingAssistant"
-project_level: 3
-current_sprint: 4
-sprint_plan_path: "docs/sprint-plan-trading-engine-2026-03-01.md"
-previous_plan_path: "docs/sprint-plan-trading-assistant-2026-02-25.md"
+project_level: 4
+current_sprint: 10
+sprint_plan_path: "docs/sprint-plan-adaptive-intelligence-2026-03-02.md"
+previous_plan_path: "docs/sprint-plan-trading-engine-2026-03-01.md"
 
 sprints:
   # === COMPLETED (Backend Phase) ===
@@ -346,6 +346,248 @@ sprints:
         status: "completed"
         completion_date: "2026-03-01"
         epic: "Frontend"
+
+  # === NEW: Adaptive Trading Intelligence ===
+  - sprint_number: 10
+    status: "in_progress"
+    goal: "Market Intelligence Foundation"
+    capacity_points: 30
+    committed_points: 24
+    completed_points: 21
+    stories:
+      - story_id: "STORY-045"
+        title: "IntelligenceDbContext & base entities"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-02"
+        epic: "Market Intelligence"
+      - story_id: "STORY-046"
+        title: "Breadth Engine"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-02"
+        epic: "Market Intelligence"
+      - story_id: "STORY-047"
+        title: "Market Regime Classifier"
+        points: 5
+        status: "completed"
+        completion_date: "2026-03-02"
+        epic: "Market Intelligence"
+      - story_id: "STORY-048"
+        title: "Cross-Market Correlation Monitor"
+        points: 3
+        status: "completed"
+        completion_date: "2026-03-02"
+        epic: "Market Intelligence"
+      - story_id: "STORY-049"
+        title: "Market Profiles & Config"
+        points: 3
+        status: "completed"
+        completion_date: "2026-03-02"
+        epic: "Market Intelligence"
+      - story_id: "STORY-050"
+        title: "Intelligence API Endpoints"
+        points: 3
+        status: "not_started"
+        epic: "Market Intelligence"
+
+  - sprint_number: 11
+    status: "not_started"
+    goal: "Risk & Portfolio Intelligence"
+    capacity_points: 30
+    committed_points: 24
+    completed_points: 0
+    stories:
+      - story_id: "STORY-051"
+        title: "Kelly-Based Position Sizing"
+        points: 5
+        status: "not_started"
+        epic: "Risk & Portfolio"
+      - story_id: "STORY-052"
+        title: "Volatility-Targeted Sizing"
+        points: 3
+        status: "not_started"
+        epic: "Risk & Portfolio"
+      - story_id: "STORY-053"
+        title: "Correlation-Aware Allocation"
+        points: 5
+        status: "not_started"
+        epic: "Risk & Portfolio"
+      - story_id: "STORY-054"
+        title: "Circuit Breaker"
+        points: 5
+        status: "not_started"
+        epic: "Risk & Portfolio"
+      - story_id: "STORY-055"
+        title: "Geographic Risk Budget"
+        points: 3
+        status: "not_started"
+        epic: "Risk & Portfolio"
+      - story_id: "STORY-056"
+        title: "Market-Specific Cost Profiles"
+        points: 3
+        status: "not_started"
+        epic: "Execution & Ops"
+
+  - sprint_number: 12
+    status: "not_started"
+    goal: "Operations + Claude Setup"
+    capacity_points: 30
+    committed_points: 24
+    completed_points: 0
+    stories:
+      - story_id: "STORY-057"
+        title: "Data Quality Monitor"
+        points: 5
+        status: "not_started"
+        epic: "Execution & Ops"
+      - story_id: "STORY-058"
+        title: "Daily Pipeline Orchestrator"
+        points: 8
+        status: "not_started"
+        epic: "Execution & Ops"
+      - story_id: "STORY-059"
+        title: "Gradual Capital Deployment"
+        points: 3
+        status: "not_started"
+        epic: "Execution & Ops"
+      - story_id: "STORY-060"
+        title: "Claude API Integration & Prompt Templates"
+        points: 5
+        status: "not_started"
+        epic: "Claude Strategy Engine"
+      - story_id: "STORY-070"
+        title: "Tournament & Claude API Endpoints"
+        points: 3
+        status: "not_started"
+        epic: "Strategy Tournament"
+
+  - sprint_number: 13
+    status: "not_started"
+    goal: "Claude Strategy Engine"
+    capacity_points: 30
+    committed_points: 23
+    completed_points: 0
+    stories:
+      - story_id: "STORY-061"
+        title: "Strategy Generator"
+        points: 8
+        status: "not_started"
+        epic: "Claude Strategy Engine"
+      - story_id: "STORY-062"
+        title: "Regime-Based Strategy Selection"
+        points: 5
+        status: "not_started"
+        epic: "Claude Strategy Engine"
+      - story_id: "STORY-063"
+        title: "Market-Specific Playbooks"
+        points: 5
+        status: "not_started"
+        epic: "Claude Strategy Engine"
+      - story_id: "STORY-064"
+        title: "Strategy Autopsy"
+        points: 5
+        status: "not_started"
+        epic: "Claude Strategy Engine"
+
+  - sprint_number: 14
+    status: "not_started"
+    goal: "Tournament + Rule Discovery"
+    capacity_points: 30
+    committed_points: 23
+    completed_points: 0
+    stories:
+      - story_id: "STORY-065"
+        title: "Rule Discovery from Trade History"
+        points: 5
+        status: "not_started"
+        epic: "Claude Strategy Engine"
+      - story_id: "STORY-066"
+        title: "Paper Trading Arena"
+        points: 5
+        status: "not_started"
+        epic: "Strategy Tournament"
+      - story_id: "STORY-067"
+        title: "Tournament Leaderboard & Tracking"
+        points: 5
+        status: "not_started"
+        epic: "Strategy Tournament"
+      - story_id: "STORY-068"
+        title: "Strategy Promotion & Retirement"
+        points: 5
+        status: "not_started"
+        epic: "Strategy Tournament"
+      - story_id: "STORY-069"
+        title: "Ensemble Signal Voting"
+        points: 3
+        status: "not_started"
+        epic: "Strategy Tournament"
+
+  - sprint_number: 15
+    status: "not_started"
+    goal: "ML Pipeline Core"
+    capacity_points: 30
+    committed_points: 23
+    completed_points: 0
+    stories:
+      - story_id: "STORY-071"
+        title: "Feature Store & Indicator Snapshot"
+        points: 5
+        status: "not_started"
+        epic: "ML Pipeline"
+      - story_id: "STORY-072"
+        title: "Feature Extractor"
+        points: 5
+        status: "not_started"
+        epic: "ML Pipeline"
+      - story_id: "STORY-073"
+        title: "ML Model Training Pipeline"
+        points: 8
+        status: "not_started"
+        epic: "ML Pipeline"
+      - story_id: "STORY-074"
+        title: "ML Prediction Service & Confidence Integration"
+        points: 5
+        status: "not_started"
+        epic: "ML Pipeline"
+
+  - sprint_number: 16
+    status: "not_started"
+    goal: "Feedback Loop & ML Ops"
+    capacity_points: 30
+    committed_points: 26
+    completed_points: 0
+    stories:
+      - story_id: "STORY-075"
+        title: "Model Retraining Pipeline"
+        points: 5
+        status: "not_started"
+        epic: "ML Pipeline"
+      - story_id: "STORY-076"
+        title: "AI Trade Journal"
+        points: 5
+        status: "not_started"
+        epic: "Feedback & Learning"
+      - story_id: "STORY-077"
+        title: "Strategy Decay Monitor"
+        points: 5
+        status: "not_started"
+        epic: "Feedback & Learning"
+      - story_id: "STORY-078"
+        title: "Mistake Taxonomy & Pattern Extraction"
+        points: 5
+        status: "not_started"
+        epic: "Feedback & Learning"
+      - story_id: "STORY-079"
+        title: "Monthly Performance Attribution"
+        points: 3
+        status: "not_started"
+        epic: "Feedback & Learning"
+      - story_id: "STORY-080"
+        title: "ML & Feedback API Endpoints"
+        points: 3
+        status: "not_started"
+        epic: "Feedback & Learning"
 
 velocity:
   sprint_1: 24
