@@ -22,6 +22,7 @@ public class BacktestEngine
     private readonly List<TradeRecord> _trades = new();
     private readonly List<EquityPoint> _equityCurve = new();
     private readonly List<string> _log = new();
+    private IReadOnlyDictionary<string, decimal>? _correlationData;
 
     public BacktestEngine(StrategyDefinition strategy, BacktestConfig? config = null)
     {
@@ -29,6 +30,15 @@ public class BacktestEngine
         _config = config ?? BacktestConfig.Default;
         _cash = _config.InitialCapital;
         _peakEquity = _config.InitialCapital;
+    }
+
+    /// <summary>
+    /// Provide pairwise correlation data for correlation-aware allocation.
+    /// Keys use "SYMBOL_A|SYMBOL_B" format (alphabetically ordered).
+    /// </summary>
+    public void SetCorrelationData(IReadOnlyDictionary<string, decimal> correlations)
+    {
+        _correlationData = correlations;
     }
 
     /// <summary>
@@ -238,6 +248,35 @@ public class BacktestEngine
         {
             _log.Add($"{bar.Timestamp:yyyy-MM-dd} SKIP ENTRY: calculated 0 shares");
             return;
+        }
+
+        // Correlation-aware allocation: block or reduce correlated positions
+        if (_strategy.PositionSizing.UseCorrelationFilter && _correlationData != null)
+        {
+            var openSymbols = _openPositions.Select(p => p.Symbol).Distinct().ToList();
+            var corrCheck = CorrelationFilter.Check(
+                symbol, openSymbols, _correlationData,
+                _strategy.PositionSizing.CorrelationBlockThreshold,
+                _strategy.PositionSizing.CorrelationReduceThreshold);
+
+            _log.Add($"{bar.Timestamp:yyyy-MM-dd} CORRELATION {symbol}: {corrCheck.Detail}");
+
+            if (corrCheck.Action == CorrelationAction.Block)
+            {
+                _log.Add($"{bar.Timestamp:yyyy-MM-dd} SKIP ENTRY: correlation block (avg={corrCheck.AvgCorrelation:F4})");
+                return;
+            }
+
+            if (corrCheck.Action == CorrelationAction.Reduce)
+            {
+                shares = CorrelationFilter.AdjustShares(shares, corrCheck);
+                if (shares <= 0)
+                {
+                    _log.Add($"{bar.Timestamp:yyyy-MM-dd} SKIP ENTRY: correlation reduction to 0 shares");
+                    return;
+                }
+                _log.Add($"{bar.Timestamp:yyyy-MM-dd} REDUCED to {shares} shares (corr multiplier={corrCheck.SizeMultiplier:F4})");
+            }
         }
 
         // Check if we have enough cash for the order (rough estimate)

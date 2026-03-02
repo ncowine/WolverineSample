@@ -398,7 +398,7 @@ sprints:
     goal: "Risk & Portfolio Intelligence"
     capacity_points: 30
     committed_points: 24
-    completed_points: 8
+    completed_points: 13
     stories:
       - story_id: "STORY-051"
         title: "Kelly-Based Position Sizing"
@@ -415,7 +415,8 @@ sprints:
       - story_id: "STORY-053"
         title: "Correlation-Aware Allocation"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-02"
         epic: "Risk & Portfolio"
       - story_id: "STORY-054"
         title: "Circuit Breaker"

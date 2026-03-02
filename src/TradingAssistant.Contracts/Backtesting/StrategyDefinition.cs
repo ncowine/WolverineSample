@@ -163,6 +163,23 @@ public class PositionSizingConfig
     /// Separate from StopLoss ATR multiplier so sizing and stops can diverge.
     /// </summary>
     public decimal VolTargetAtrMultiplier { get; set; } = 2m;
+
+    /// <summary>
+    /// Enable correlation-aware allocation: block or reduce positions
+    /// that are highly correlated with existing portfolio holdings.
+    /// </summary>
+    public bool UseCorrelationFilter { get; set; }
+
+    /// <summary>
+    /// Block entry when avg pairwise correlation with open positions exceeds this (default 0.7).
+    /// </summary>
+    public decimal CorrelationBlockThreshold { get; set; } = 0.7m;
+
+    /// <summary>
+    /// Start reducing position size when avg correlation exceeds this (default 0.5).
+    /// Size scales linearly from 100% at this threshold to 0% at BlockThreshold.
+    /// </summary>
+    public decimal CorrelationReduceThreshold { get; set; } = 0.5m;
 }
 
 public class TradeFilterConfig
