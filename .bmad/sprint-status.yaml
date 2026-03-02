@@ -353,7 +353,8 @@ sprints:
     goal: "Market Intelligence Foundation"
     capacity_points: 30
     committed_points: 24
-    completed_points: 21
+    completed_points: 24
+    status: "completed"
     stories:
       - story_id: "STORY-045"
         title: "IntelligenceDbContext & base entities"
@@ -388,7 +389,8 @@ sprints:
       - story_id: "STORY-050"
         title: "Intelligence API Endpoints"
         points: 3
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-02"
         epic: "Market Intelligence"
 
   - sprint_number: 11
