@@ -18,3 +18,21 @@ public record CorrelationMatrixDto(
     DateTime SnapshotDate,
     int LookbackDays,
     string MatrixJson);
+
+public record PipelineStepStatusDto(
+    string StepName,
+    int StepOrder,
+    string Status,
+    double DurationSeconds,
+    string? ErrorMessage,
+    int RetryCount);
+
+public record PipelineRunStatusDto(
+    string MarketCode,
+    DateTime RunDate,
+    string OverallStatus,
+    int CompletedSteps,
+    int FailedSteps,
+    int SkippedSteps,
+    int TotalSteps,
+    IReadOnlyList<PipelineStepStatusDto> Steps);

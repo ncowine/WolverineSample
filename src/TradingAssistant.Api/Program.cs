@@ -93,8 +93,9 @@ builder.Services.AddHttpClient<IMarketDataProvider, YahooFinanceProvider>(client
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
-// Register DCA plan background execution service
+// Register background services
 builder.Services.AddHostedService<DcaPlanExecutionService>();
+builder.Services.AddHostedService<DailyPipelineService>();
 
 // Configure Wolverine
 builder.Host.UseWolverine(opts =>

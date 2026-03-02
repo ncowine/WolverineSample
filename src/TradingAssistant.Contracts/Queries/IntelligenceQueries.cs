@@ -13,3 +13,5 @@ public record GetRegimeHistoryQuery(string MarketCode, int Page = 1, int PageSiz
 public record GetLatestBreadthQuery(string MarketCode);
 
 public record GetCorrelationMatrixQuery;
+
+public record GetPipelineStatusQuery(string? MarketCode = null);

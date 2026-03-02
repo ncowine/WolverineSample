@@ -443,7 +443,7 @@ sprints:
     goal: "Operations + Claude Setup"
     capacity_points: 30
     committed_points: 24
-    completed_points: 5
+    completed_points: 13
     stories:
       - story_id: "STORY-057"
         title: "Data Quality Monitor"
@@ -454,7 +454,8 @@ sprints:
       - story_id: "STORY-058"
         title: "Daily Pipeline Orchestrator"
         points: 8
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-02"
         epic: "Execution & Ops"
       - story_id: "STORY-059"
         title: "Gradual Capital Deployment"
