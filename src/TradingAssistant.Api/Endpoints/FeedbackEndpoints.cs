@@ -8,6 +8,7 @@ using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
 using TradingAssistant.Infrastructure.Persistence;
+using TradingAssistant.SharedKernel;
 
 namespace TradingAssistant.Api.Endpoints;
 
@@ -36,6 +37,15 @@ public class FeedbackEndpoints : IEndpoint
 
         group.MapDelete("/lock-strategy/{marketCode}", UnlockStrategy)
             .WithSummary("Unlock a strategy assignment (allows automatic regime-based selection)");
+
+        group.MapPost("/review-trade", ReviewTrade)
+            .WithSummary("Run Claude AI review on a completed trade");
+
+        group.MapGet("/trade-reviews", GetTradeReviews)
+            .WithSummary("Get paginated trade reviews with optional filters");
+
+        group.MapGet("/trade-reviews/{tradeId:guid}", GetTradeReviewByTradeId)
+            .WithSummary("Get trade review for a specific trade");
     }
 
     private static async Task<IReadOnlyList<PipelineRunStatusDto>> GetPipelineStatus(
@@ -89,6 +99,40 @@ public class FeedbackEndpoints : IEndpoint
         var result = await UnlockStrategyHandler.HandleAsync(new UnlockStrategyCommand(marketCode), db);
         return result is null
             ? Results.NotFound($"No strategy assignment for market '{marketCode}'.")
+            : Results.Ok(result);
+    }
+
+    private static async Task<ReviewTradeResultDto> ReviewTrade(
+        [FromBody] ReviewTradeCommand command,
+        IClaudeClient claude,
+        IntelligenceDbContext db,
+        ILogger<ReviewTradeHandler> logger)
+    {
+        return await ReviewTradeHandler.HandleAsync(command, claude, db, logger);
+    }
+
+    private static async Task<PagedResponse<TradeReviewDto>> GetTradeReviews(
+        [FromQuery] string? symbol,
+        [FromQuery] string? marketCode,
+        [FromQuery] string? outcomeClass,
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
+        IntelligenceDbContext db)
+    {
+        return await GetTradeReviewsHandler.HandleAsync(
+            new GetTradeReviewsQuery(symbol, marketCode, outcomeClass,
+                page > 0 ? page : 1, pageSize > 0 ? pageSize : 20),
+            db);
+    }
+
+    private static async Task<IResult> GetTradeReviewByTradeId(
+        [FromRoute] Guid tradeId,
+        IntelligenceDbContext db)
+    {
+        var result = await GetTradeReviewByTradeIdHandler.HandleAsync(
+            new GetTradeReviewByTradeIdQuery(tradeId), db);
+        return result is null
+            ? Results.NotFound($"No review found for trade '{tradeId}'.")
             : Results.Ok(result);
     }
 }

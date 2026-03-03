@@ -286,14 +286,16 @@ public class StrategyGenerationPromptTests
 public class TradeReviewPromptTests
 {
     [Fact]
-    public void BuildSystemPrompt_ContainsClassifications()
+    public void BuildSystemPrompt_ContainsOutcomeClasses()
     {
         var prompt = TradeReviewPrompt.BuildSystemPrompt();
 
-        Assert.Contains("Good", prompt);
-        Assert.Contains("Bad", prompt);
-        Assert.Contains("Lucky", prompt);
-        Assert.Contains("Unlucky", prompt);
+        Assert.Contains("GoodEntryGoodExit", prompt);
+        Assert.Contains("GoodEntryBadExit", prompt);
+        Assert.Contains("BadEntry", prompt);
+        Assert.Contains("RegimeMismatch", prompt);
+        Assert.Contains("StoppedCorrectly", prompt);
+        Assert.Contains("StoppedPrematurely", prompt);
     }
 
     [Fact]
@@ -308,6 +310,8 @@ public class TradeReviewPromptTests
             ExitPrice: 190.00m,
             PnlPercent: 5.26m,
             StrategyName: "BullMomentum",
+            RegimeAtEntry: "Bull",
+            RegimeAtExit: "Bull",
             IndicatorValuesAtEntry: new Dictionary<string, decimal>
             {
                 ["RSI"] = 62.5m,
@@ -330,7 +334,8 @@ public class TradeReviewPromptTests
     {
         var input = new TradeReviewInput("MSFT", "Short",
             new DateTime(2026, 1, 1), new DateTime(2026, 1, 5),
-            300m, 290m, 3.33m, "MeanReversion");
+            300m, 290m, 3.33m, "MeanReversion",
+            RegimeAtEntry: "Bear", RegimeAtExit: "Bear");
 
         var prompt = TradeReviewPrompt.BuildUserPrompt(input);
         Assert.Contains("N/A", prompt);
@@ -341,7 +346,7 @@ public class TradeReviewPromptTests
     {
         var json = """
             {
-              "classification": "Good",
+              "outcomeClass": "GoodEntryGoodExit",
               "score": 8,
               "strengths": ["Timed the entry well", "Good risk management"],
               "weaknesses": ["Could have held longer"],
@@ -353,7 +358,7 @@ public class TradeReviewPromptTests
         var result = TradeReviewPrompt.ParseResponse(json);
 
         Assert.NotNull(result);
-        Assert.Equal("Good", result!.Classification);
+        Assert.Equal("GoodEntryGoodExit", result!.OutcomeClass);
         Assert.Equal(8, result.Score);
         Assert.Equal(2, result.Strengths.Count);
         Assert.Single(result.Weaknesses);
@@ -625,14 +630,15 @@ public class ClaudePromptEndToEndTests
     {
         var client = new FakeClaudeClient();
         client.SetDefaultResponse("""
-            {"classification":"Good","score":7,"strengths":["Good timing"],
+            {"outcomeClass":"GoodEntryGoodExit","score":7,"strengths":["Good timing"],
              "weaknesses":["Could improve exit"],"lessonsLearned":["Patience pays"],
              "summary":"Solid trade"}
             """);
 
         var input = new TradeReviewInput("AAPL", "Long",
             new DateTime(2026, 1, 1), new DateTime(2026, 1, 10),
-            150m, 160m, 6.67m, "TestStrat");
+            150m, 160m, 6.67m, "TestStrat",
+            RegimeAtEntry: "Bull", RegimeAtExit: "Bull");
         var request = new ClaudeRequest(
             TradeReviewPrompt.BuildSystemPrompt(),
             TradeReviewPrompt.BuildUserPrompt(input));
@@ -641,7 +647,7 @@ public class ClaudePromptEndToEndTests
         var output = TradeReviewPrompt.ParseResponse(response.Content);
 
         Assert.NotNull(output);
-        Assert.Equal("Good", output!.Classification);
+        Assert.Equal("GoodEntryGoodExit", output!.OutcomeClass);
         Assert.Equal(7, output.Score);
     }
 

@@ -24,6 +24,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<EnsembleSignal> EnsembleSignals => Set<EnsembleSignal>();
     public DbSet<FeatureSnapshot> FeatureSnapshots => Set<FeatureSnapshot>();
     public DbSet<MlModel> MlModels => Set<MlModel>();
+    public DbSet<TradeReview> TradeReviews => Set<TradeReview>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -283,6 +284,30 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.DeactivationReason).HasMaxLength(500);
             entity.HasIndex(e => new { e.MarketCode, e.IsActive });
             entity.HasIndex(e => new { e.MarketCode, e.ModelVersion }).IsUnique();
+        });
+
+        modelBuilder.Entity<TradeReview>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Symbol).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.StrategyName).HasMaxLength(200);
+            entity.Property(e => e.EntryPrice).HasPrecision(18, 4);
+            entity.Property(e => e.ExitPrice).HasPrecision(18, 4);
+            entity.Property(e => e.PnlPercent).HasPrecision(18, 4);
+            entity.Property(e => e.PnlAbsolute).HasPrecision(18, 4);
+            entity.Property(e => e.Grade).HasPrecision(8, 2);
+            entity.Property(e => e.RegimeAtEntry).HasMaxLength(30);
+            entity.Property(e => e.RegimeAtExit).HasMaxLength(30);
+            entity.Property(e => e.IndicatorValuesJson).HasMaxLength(8_000);
+            entity.Property(e => e.StrengthsJson).HasMaxLength(4_000);
+            entity.Property(e => e.WeaknessesJson).HasMaxLength(4_000);
+            entity.Property(e => e.LessonsLearnedJson).HasMaxLength(4_000);
+            entity.Property(e => e.Summary).HasMaxLength(4_000);
+            entity.HasIndex(e => e.TradeId).IsUnique();
+            entity.HasIndex(e => new { e.Symbol, e.ReviewedAt });
+            entity.HasIndex(e => e.OutcomeClass);
+            entity.HasIndex(e => e.MarketCode);
         });
     }
 }
