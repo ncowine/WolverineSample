@@ -302,6 +302,9 @@ interface ParamRange {
               </table>
             </div>
 
+            @if (!isNewStrategyValid()) {
+              <div class="alert alert-warning text-sm">Add at least one entry condition on Step 1 before running.</div>
+            }
             @if (error()) {
               <div class="alert alert-error text-sm">{{ error() }}</div>
             }
@@ -315,11 +318,11 @@ interface ParamRange {
             <div class="card-actions justify-between mt-4">
               <button class="btn btn-ghost btn-sm" (click)="step.set(3)" [disabled]="running()">Back</button>
               <div class="flex gap-2">
-                <button class="btn btn-primary btn-sm" (click)="runBacktest()" [disabled]="running()">
+                <button class="btn btn-primary btn-sm" (click)="runBacktest()" [disabled]="running() || !isNewStrategyValid()">
                   Run Backtest
                 </button>
                 @if (paramRanges.length > 0) {
-                  <button class="btn btn-secondary btn-sm" (click)="runWalkForward()" [disabled]="running()">
+                  <button class="btn btn-secondary btn-sm" (click)="runWalkForward()" [disabled]="running() || !isNewStrategyValid()">
                     Run Walk-Forward
                   </button>
                 }
@@ -483,11 +486,22 @@ export class BacktestConfigComponent {
     }
   }
 
+  /** Checks whether the new-strategy form is valid (skipped when using an existing strategy). */
+  isNewStrategyValid(): boolean {
+    if (this.selectedStrategyId) return true;
+    return this.entryConditions.length > 0;
+  }
+
   /** Create strategy if new, or return selected ID */
   private ensureStrategy(): Promise<string> {
     return new Promise((resolve, reject) => {
       if (this.selectedStrategyId) {
         resolve(this.selectedStrategyId);
+        return;
+      }
+
+      if (this.entryConditions.length === 0) {
+        reject(new Error('Add at least one entry condition before running a backtest.'));
         return;
       }
 
