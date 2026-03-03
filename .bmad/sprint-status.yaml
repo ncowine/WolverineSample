@@ -580,11 +580,11 @@ sprints:
         epic: "ML Pipeline"
 
   - sprint_number: 16
-    status: "in_progress"
+    status: "completed"
     goal: "Feedback Loop & ML Ops"
     capacity_points: 30
     committed_points: 26
-    completed_points: 23
+    completed_points: 26
     stories:
       - story_id: "STORY-075"
         title: "Model Retraining Pipeline"
@@ -619,7 +619,8 @@ sprints:
       - story_id: "STORY-080"
         title: "ML & Feedback API Endpoints"
         points: 3
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Feedback & Learning"
 
 velocity:
