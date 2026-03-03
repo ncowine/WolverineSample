@@ -23,6 +23,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<RuleDiscovery> RuleDiscoveries => Set<RuleDiscovery>();
     public DbSet<EnsembleSignal> EnsembleSignals => Set<EnsembleSignal>();
     public DbSet<FeatureSnapshot> FeatureSnapshots => Set<FeatureSnapshot>();
+    public DbSet<MlModel> MlModels => Set<MlModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -271,6 +272,17 @@ public class IntelligenceDbContext : DbContext
             entity.HasIndex(e => e.TradeId).IsUnique();
             entity.HasIndex(e => new { e.Symbol, e.CapturedAt });
             entity.HasIndex(e => e.TradeOutcome);
+        });
+
+        modelBuilder.Entity<MlModel>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.ModelPath).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.FeatureImportanceJson).HasMaxLength(4_000);
+            entity.Property(e => e.DeactivationReason).HasMaxLength(500);
+            entity.HasIndex(e => new { e.MarketCode, e.IsActive });
+            entity.HasIndex(e => new { e.MarketCode, e.ModelVersion }).IsUnique();
         });
     }
 }

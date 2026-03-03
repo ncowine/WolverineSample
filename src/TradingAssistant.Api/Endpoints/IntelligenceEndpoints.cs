@@ -47,6 +47,12 @@ public class IntelligenceEndpoints : IEndpoint
 
         group.MapGet("/training-data", GetTrainingData)
             .WithSummary("Get training dataset metadata and feature column schema");
+
+        group.MapPost("/ml/retrain", RetrainModel)
+            .WithSummary("Train/retrain ML model for a market using labeled feature snapshots");
+
+        group.MapGet("/ml/models/{marketCode}", GetMlModels)
+            .WithSummary("Get ML model metadata for a market");
     }
 
     private static async Task<MarketRegimeDto> GetCurrentRegime(
@@ -135,5 +141,18 @@ public class IntelligenceEndpoints : IEndpoint
         return await bus.InvokeAsync<TrainingDataResultDto>(
             new GetTrainingDataQuery(symbol, marketCode, minVersion,
                 maxRecords > 0 ? maxRecords : 10_000));
+    }
+
+    private static async Task<RetrainResultDto> RetrainModel(
+        [FromBody] RetrainModelCommand command, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<RetrainResultDto>(command);
+    }
+
+    private static async Task<IReadOnlyList<MlModelDto>> GetMlModels(
+        [FromRoute] string marketCode, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<IReadOnlyList<MlModelDto>>(
+            new GetMlModelsQuery(marketCode));
     }
 }

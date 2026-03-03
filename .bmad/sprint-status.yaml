@@ -552,7 +552,7 @@ sprints:
     goal: "ML Pipeline Core"
     capacity_points: 30
     committed_points: 23
-    completed_points: 10
+    completed_points: 18
     stories:
       - story_id: "STORY-071"
         title: "Feature Store & Indicator Snapshot"
@@ -569,7 +569,8 @@ sprints:
       - story_id: "STORY-073"
         title: "ML Model Training Pipeline"
         points: 8
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "ML Pipeline"
       - story_id: "STORY-074"
         title: "ML Prediction Service & Confidence Integration"
