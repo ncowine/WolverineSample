@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TradingAssistant.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace TradingAssistant.Infrastructure.Migrations.Intelligence
+namespace TradingAssistant.Infrastructure.Persistence.Migrations.Intelligence
 {
     [DbContext(typeof(IntelligenceDbContext))]
-    partial class IntelligenceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260303175548_AddStrategyAutopsy")]
+    partial class AddStrategyAutopsy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.24");
@@ -224,7 +227,7 @@ namespace TradingAssistant.Infrastructure.Migrations.Intelligence
                             Id = new Guid("b2c3d4e5-0001-0001-0001-000000000001"),
                             CommissionPerShare = 0.005m,
                             CommissionPercent = 0m,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 2, 54, 74, DateTimeKind.Utc).AddTicks(4494),
+                            CreatedAt = new DateTime(2026, 3, 3, 17, 55, 47, 695, DateTimeKind.Utc).AddTicks(5801),
                             ExchangeFeePercent = 0m,
                             IsActive = true,
                             MarketCode = "US_SP500",
@@ -237,7 +240,7 @@ namespace TradingAssistant.Infrastructure.Migrations.Intelligence
                             Id = new Guid("b2c3d4e5-0001-0001-0001-000000000002"),
                             CommissionPerShare = 0m,
                             CommissionPercent = 0.03m,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 2, 54, 74, DateTimeKind.Utc).AddTicks(4518),
+                            CreatedAt = new DateTime(2026, 3, 3, 17, 55, 47, 695, DateTimeKind.Utc).AddTicks(5810),
                             ExchangeFeePercent = 0m,
                             IsActive = true,
                             MarketCode = "IN_NIFTY50",
@@ -510,70 +513,6 @@ namespace TradingAssistant.Infrastructure.Migrations.Intelligence
                     b.HasIndex("TransitionDate");
 
                     b.ToTable("RegimeTransitions");
-                });
-
-            modelBuilder.Entity("TradingAssistant.Domain.Intelligence.RuleDiscovery", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("AnalyzedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DiscoveredRulesJson")
-                        .IsRequired()
-                        .HasMaxLength(8000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("LosingTrades")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("MarketCode")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PatternsJson")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("StrategyId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("StrategyName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Summary")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TradeCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("WinningTrades")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MarketCode");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("RuleDiscoveries");
                 });
 
             modelBuilder.Entity("TradingAssistant.Domain.Intelligence.StrategyAssignment", b =>

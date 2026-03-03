@@ -480,7 +480,8 @@ sprints:
     goal: "Claude Strategy Engine"
     capacity_points: 30
     committed_points: 23
-    completed_points: 18
+    completed_points: 23
+    status: "completed"
     stories:
       - story_id: "STORY-061"
         title: "Strategy Generator"
@@ -503,20 +504,22 @@ sprints:
       - story_id: "STORY-064"
         title: "Strategy Autopsy"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Claude Strategy Engine"
 
   - sprint_number: 14
-    status: "not_started"
+    status: "in_progress"
     goal: "Tournament + Rule Discovery"
     capacity_points: 30
     committed_points: 23
-    completed_points: 0
+    completed_points: 5
     stories:
       - story_id: "STORY-065"
         title: "Rule Discovery from Trade History"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Claude Strategy Engine"
       - story_id: "STORY-066"
         title: "Paper Trading Arena"

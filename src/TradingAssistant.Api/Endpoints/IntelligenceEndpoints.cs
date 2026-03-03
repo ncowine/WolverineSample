@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
 using TradingAssistant.Contracts.Queries;
 using TradingAssistant.SharedKernel;
@@ -28,6 +29,18 @@ public class IntelligenceEndpoints : IEndpoint
 
         group.MapGet("/market-profile/{marketCode}", GetMarketProfile)
             .WithSummary("Get market DNA profile");
+
+        group.MapPost("/autopsy", RunAutopsy)
+            .WithSummary("Run Claude-powered post-mortem on a losing strategy month");
+
+        group.MapGet("/autopsy/{strategyId:guid}", GetAutopsyHistory)
+            .WithSummary("Get autopsy history for a strategy");
+
+        group.MapPost("/discover-rules", DiscoverRules)
+            .WithSummary("Analyze trade history to discover patterns distinguishing winners from losers");
+
+        group.MapGet("/discovered-rules/{strategyId:guid}", GetDiscoveredRules)
+            .WithSummary("Get rule discovery history for a strategy");
     }
 
     private static async Task<MarketRegimeDto> GetCurrentRegime(
@@ -65,5 +78,31 @@ public class IntelligenceEndpoints : IEndpoint
     {
         return await bus.InvokeAsync<MarketProfileDto>(
             new GetMarketProfileQuery(marketCode));
+    }
+
+    private static async Task<StrategyAutopsyResultDto> RunAutopsy(
+        [FromBody] RunAutopsyCommand command, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<StrategyAutopsyResultDto>(command);
+    }
+
+    private static async Task<IReadOnlyList<StrategyAutopsyDto>> GetAutopsyHistory(
+        [FromRoute] Guid strategyId, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<IReadOnlyList<StrategyAutopsyDto>>(
+            new GetAutopsyHistoryQuery(strategyId));
+    }
+
+    private static async Task<DiscoverRulesResultDto> DiscoverRules(
+        [FromBody] DiscoverRulesCommand command, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<DiscoverRulesResultDto>(command);
+    }
+
+    private static async Task<IReadOnlyList<DiscoverRulesResultDto>> GetDiscoveredRules(
+        [FromRoute] Guid strategyId, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<IReadOnlyList<DiscoverRulesResultDto>>(
+            new GetDiscoveredRulesQuery(strategyId));
     }
 }

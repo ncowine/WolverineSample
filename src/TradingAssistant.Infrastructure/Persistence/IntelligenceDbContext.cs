@@ -18,6 +18,8 @@ public class IntelligenceDbContext : DbContext
     public DbSet<TournamentEntry> TournamentEntries => Set<TournamentEntry>();
     public DbSet<StrategyAssignment> StrategyAssignments => Set<StrategyAssignment>();
     public DbSet<StrategyRegimeScore> StrategyRegimeScores => Set<StrategyRegimeScore>();
+    public DbSet<StrategyAutopsy> StrategyAutopsies => Set<StrategyAutopsy>();
+    public DbSet<RuleDiscovery> RuleDiscoveries => Set<RuleDiscovery>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -200,6 +202,36 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
             entity.Property(e => e.SharpeRatio).HasPrecision(8, 4);
             entity.HasIndex(e => new { e.StrategyId, e.MarketCode, e.Regime }).IsUnique();
+        });
+
+        modelBuilder.Entity<StrategyAutopsy>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.StrategyName).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.MonthlyReturnPercent).HasPrecision(8, 4);
+            entity.Property(e => e.MaxDrawdownPercent).HasPrecision(8, 4);
+            entity.Property(e => e.WinRate).HasPrecision(8, 4);
+            entity.Property(e => e.SharpeRatio).HasPrecision(8, 4);
+            entity.Property(e => e.Confidence).HasPrecision(8, 4);
+            entity.Property(e => e.RootCausesJson).HasMaxLength(4_000);
+            entity.Property(e => e.MarketConditionImpact).HasMaxLength(2_000);
+            entity.Property(e => e.RecommendationsJson).HasMaxLength(4_000);
+            entity.Property(e => e.Summary).HasMaxLength(4_000);
+            entity.HasIndex(e => e.StrategyId);
+            entity.HasIndex(e => new { e.MarketCode, e.PeriodStart });
+        });
+
+        modelBuilder.Entity<RuleDiscovery>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.StrategyName).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.DiscoveredRulesJson).HasMaxLength(8_000);
+            entity.Property(e => e.PatternsJson).HasMaxLength(4_000);
+            entity.Property(e => e.Summary).HasMaxLength(4_000);
+            entity.HasIndex(e => e.StrategyId);
+            entity.HasIndex(e => e.MarketCode);
         });
     }
 }
