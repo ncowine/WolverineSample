@@ -22,6 +22,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<StrategyAutopsy> StrategyAutopsies => Set<StrategyAutopsy>();
     public DbSet<RuleDiscovery> RuleDiscoveries => Set<RuleDiscovery>();
     public DbSet<EnsembleSignal> EnsembleSignals => Set<EnsembleSignal>();
+    public DbSet<FeatureSnapshot> FeatureSnapshots => Set<FeatureSnapshot>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -257,6 +258,19 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.VotesJson).HasMaxLength(8_000);
             entity.HasIndex(e => new { e.MarketCode, e.Symbol, e.SignalDate });
             entity.HasIndex(e => e.SignalDate);
+        });
+
+        modelBuilder.Entity<FeatureSnapshot>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Symbol).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.FeaturesJson).HasMaxLength(32_000).IsRequired();
+            entity.Property(e => e.FeaturesHash).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.TradePnlPercent).HasPrecision(18, 4);
+            entity.HasIndex(e => e.TradeId).IsUnique();
+            entity.HasIndex(e => new { e.Symbol, e.CapturedAt });
+            entity.HasIndex(e => e.TradeOutcome);
         });
     }
 }
