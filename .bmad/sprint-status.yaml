@@ -509,11 +509,11 @@ sprints:
         epic: "Claude Strategy Engine"
 
   - sprint_number: 14
-    status: "in_progress"
+    status: "completed"
     goal: "Tournament + Rule Discovery"
     capacity_points: 30
     committed_points: 23
-    completed_points: 20
+    completed_points: 23
     stories:
       - story_id: "STORY-065"
         title: "Rule Discovery from Trade History"
@@ -542,7 +542,8 @@ sprints:
       - story_id: "STORY-069"
         title: "Ensemble Signal Voting"
         points: 3
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Strategy Tournament"
 
   - sprint_number: 15

@@ -21,6 +21,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<StrategyRegimeScore> StrategyRegimeScores => Set<StrategyRegimeScore>();
     public DbSet<StrategyAutopsy> StrategyAutopsies => Set<StrategyAutopsy>();
     public DbSet<RuleDiscovery> RuleDiscoveries => Set<RuleDiscovery>();
+    public DbSet<EnsembleSignal> EnsembleSignals => Set<EnsembleSignal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -244,6 +245,18 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.Summary).HasMaxLength(4_000);
             entity.HasIndex(e => e.StrategyId);
             entity.HasIndex(e => e.MarketCode);
+        });
+
+        modelBuilder.Entity<EnsembleSignal>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Symbol).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Confidence).HasPrecision(8, 4);
+            entity.Property(e => e.VotingMode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.VotesJson).HasMaxLength(8_000);
+            entity.HasIndex(e => new { e.MarketCode, e.Symbol, e.SignalDate });
+            entity.HasIndex(e => e.SignalDate);
         });
     }
 }
