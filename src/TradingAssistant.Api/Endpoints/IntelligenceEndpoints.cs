@@ -53,6 +53,15 @@ public class IntelligenceEndpoints : IEndpoint
 
         group.MapGet("/ml/models/{marketCode}", GetMlModels)
             .WithSummary("Get ML model metadata for a market");
+
+        group.MapGet("/ml/models/{marketCode}/active", GetActiveMlModel)
+            .WithSummary("Get the active ML model for a market");
+
+        group.MapGet("/ml/feature-importance/{marketCode}", GetMlFeatureImportance)
+            .WithSummary("Get top feature importance for active ML model");
+
+        group.MapPost("/ml/predict", PredictConfidence)
+            .WithSummary("Run ML prediction for a symbol in a market");
     }
 
     private static async Task<MarketRegimeDto> GetCurrentRegime(
@@ -154,5 +163,25 @@ public class IntelligenceEndpoints : IEndpoint
     {
         return await bus.InvokeAsync<IReadOnlyList<MlModelDto>>(
             new GetMlModelsQuery(marketCode));
+    }
+
+    private static async Task<MlModelDto?> GetActiveMlModel(
+        [FromRoute] string marketCode, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<MlModelDto?>(
+            new GetActiveMlModelQuery(marketCode));
+    }
+
+    private static async Task<IReadOnlyList<FeatureImportanceDto>> GetMlFeatureImportance(
+        [FromRoute] string marketCode, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<IReadOnlyList<FeatureImportanceDto>>(
+            new GetMlFeatureImportanceQuery(marketCode));
+    }
+
+    private static async Task<MlPredictionResultDto> PredictConfidence(
+        [FromBody] PredictConfidenceCommand command, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<MlPredictionResultDto>(command);
     }
 }

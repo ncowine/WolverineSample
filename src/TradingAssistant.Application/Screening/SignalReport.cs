@@ -83,6 +83,11 @@ public class SignalReport
     public decimal? HistoricalWinRate { get; init; }
 
     /// <summary>
+    /// ML model confidence (0.0–1.0). Null when no model is loaded.
+    /// </summary>
+    public float? MlConfidence { get; init; }
+
+    /// <summary>
     /// True if this signal passes the quality gate (A or B grade).
     /// </summary>
     public bool PassesScreener => Grade is SignalGrade.A or SignalGrade.B;

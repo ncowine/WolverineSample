@@ -548,11 +548,11 @@ sprints:
         epic: "Strategy Tournament"
 
   - sprint_number: 15
-    status: "in_progress"
+    status: "completed"
     goal: "ML Pipeline Core"
     capacity_points: 30
     committed_points: 23
-    completed_points: 18
+    completed_points: 23
     stories:
       - story_id: "STORY-071"
         title: "Feature Store & Indicator Snapshot"
@@ -575,7 +575,8 @@ sprints:
       - story_id: "STORY-074"
         title: "ML Prediction Service & Confidence Integration"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "ML Pipeline"
 
   - sprint_number: 16

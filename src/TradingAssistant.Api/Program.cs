@@ -38,6 +38,7 @@ builder.Services.AddDbContext<IntelligenceDbContext>(options =>
 builder.Services.AddSingleton<StockPriceCache>();
 builder.Services.AddSingleton<BacktestResultCache>();
 builder.Services.AddSingleton<PortfolioCache>();
+builder.Services.AddSingleton<TradingAssistant.Infrastructure.ML.MlPredictionService>();
 
 // Configure JWT authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured.");
