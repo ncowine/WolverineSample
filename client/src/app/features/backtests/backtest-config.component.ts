@@ -46,27 +46,32 @@ interface StrategyTemplate {
   maxDrawdown: number;
 }
 
-/** Pre-built strategy templates matching backend PlaybookGenerator */
+/**
+ * Pre-built strategy templates using named indicator slots from ConditionEvaluator:
+ *   EMAShort(12), EMAMedium(26), EMALong(50)
+ *   SMAShort(10), SMAMedium(20), SMALong(50)
+ *   RSI(14), BollingerPercentB, BollingerUpper, BollingerLower, ATR(14)
+ * Groups are AND'd; conditions within a group are OR'd.
+ */
 const TEMPLATES: Record<string, StrategyTemplate> = {
   Momentum: {
     id: 'Momentum',
     name: 'Momentum',
-    description: 'Ride strong trends. Buys when short-term moving averages cross above long-term, with RSI confirming strength.',
+    description: 'Ride strong trends. Buys when EMA(12) crosses above EMA(50), with RSI confirming bullish strength.',
     badge: 'Best for trending markets',
     definition: {
       entryConditions: [
         { timeframe: 'Daily', conditions: [
-          { indicator: 'EMA', period: 20, comparison: 'CrossAbove', referenceIndicator: 'EMA', referencePeriod: 50 },
-          { indicator: 'RSI', period: 14, comparison: 'GreaterThan', value: 50 },
+          { indicator: 'EMAShort', comparison: 'CrossAbove', value: 0, referenceIndicator: 'EMALong' },
         ]},
-        { timeframe: 'Weekly', conditions: [
-          { indicator: 'SMA', period: 50, comparison: 'GreaterThan', referenceIndicator: 'SMA', referencePeriod: 200 },
+        { timeframe: 'Daily', conditions: [
+          { indicator: 'RSI', comparison: 'GreaterThan', value: 50 },
         ]},
       ],
       exitConditions: [
         { timeframe: 'Daily', conditions: [
-          { indicator: 'EMA', period: 20, comparison: 'CrossBelow', referenceIndicator: 'EMA', referencePeriod: 50 },
-          { indicator: 'RSI', period: 14, comparison: 'LessThan', value: 40 },
+          { indicator: 'EMAShort', comparison: 'CrossBelow', value: 0, referenceIndicator: 'EMALong' },
+          { indicator: 'RSI', comparison: 'LessThan', value: 40 },
         ]},
       ],
     },
@@ -79,22 +84,19 @@ const TEMPLATES: Record<string, StrategyTemplate> = {
   MeanReversion: {
     id: 'MeanReversion',
     name: 'Mean Reversion',
-    description: 'Buy the dip. Enters when price is oversold (low RSI, below Bollinger Band) and exits on recovery.',
+    description: 'Buy the dip. Enters when RSI is oversold or price drops below lower Bollinger Band. Exits on recovery.',
     badge: 'Best for sideways markets',
     definition: {
       entryConditions: [
         { timeframe: 'Daily', conditions: [
-          { indicator: 'RSI', period: 14, comparison: 'LessThan', value: 30 },
-          { indicator: 'BollingerBands', period: 20, comparison: 'LessThan', value: 0 },
-        ]},
-        { timeframe: 'Daily', conditions: [
-          { indicator: 'SMA', period: 200, comparison: 'GreaterThan', value: 0, referenceIndicator: 'Price' },
+          { indicator: 'RSI', comparison: 'LessThan', value: 30 },
+          { indicator: 'BollingerPercentB', comparison: 'LessThan', value: 0.1 },
         ]},
       ],
       exitConditions: [
         { timeframe: 'Daily', conditions: [
-          { indicator: 'RSI', period: 14, comparison: 'GreaterThan', value: 60 },
-          { indicator: 'BollingerBands', period: 20, comparison: 'GreaterThan', value: 0 },
+          { indicator: 'RSI', comparison: 'GreaterThan', value: 60 },
+          { indicator: 'BollingerPercentB', comparison: 'GreaterThan', value: 0.8 },
         ]},
       ],
     },
@@ -107,21 +109,21 @@ const TEMPLATES: Record<string, StrategyTemplate> = {
   Breakout: {
     id: 'Breakout',
     name: 'Breakout',
-    description: 'Catch explosive moves. Enters when price breaks above Bollinger Bands with volume surge.',
+    description: 'Catch explosive moves. Enters when price breaks above upper Bollinger Band with RSI strength.',
     badge: 'Best for volatile markets',
     definition: {
       entryConditions: [
         { timeframe: 'Daily', conditions: [
-          { indicator: 'Price', comparison: 'GreaterThan', value: 0, referenceIndicator: 'BollingerBands', referencePeriod: 20 },
-          { indicator: 'Volume', comparison: 'GreaterThan', value: 1.5 },
+          { indicator: 'Price', comparison: 'CrossAbove', value: 0, referenceIndicator: 'BollingerUpper' },
         ]},
         { timeframe: 'Daily', conditions: [
-          { indicator: 'ATR', period: 14, comparison: 'GreaterThan', value: 0 },
+          { indicator: 'RSI', comparison: 'GreaterThan', value: 55 },
         ]},
       ],
       exitConditions: [
         { timeframe: 'Daily', conditions: [
-          { indicator: 'Price', comparison: 'LessThan', value: 0, referenceIndicator: 'EMA', referencePeriod: 20 },
+          { indicator: 'Price', comparison: 'CrossBelow', value: 0, referenceIndicator: 'EMAMedium' },
+          { indicator: 'RSI', comparison: 'LessThan', value: 45 },
         ]},
       ],
     },
