@@ -513,7 +513,7 @@ sprints:
     goal: "Tournament + Rule Discovery"
     capacity_points: 30
     committed_points: 23
-    completed_points: 10
+    completed_points: 15
     stories:
       - story_id: "STORY-065"
         title: "Rule Discovery from Trade History"
@@ -530,7 +530,8 @@ sprints:
       - story_id: "STORY-067"
         title: "Tournament Leaderboard & Tracking"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Strategy Tournament"
       - story_id: "STORY-068"
         title: "Strategy Promotion & Retirement"

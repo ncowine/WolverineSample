@@ -26,6 +26,15 @@ public class TournamentEndpoints : IEndpoint
 
         group.MapGet("/{tournamentId:guid}/entries", GetTournamentEntries)
             .WithSummary("Get all entries in a tournament ordered by performance");
+
+        group.MapGet("/leaderboard/{marketCode}", GetLeaderboard)
+            .WithSummary("Get tournament leaderboard for a market, sorted by Sharpe ratio");
+
+        group.MapGet("/entries/{entryId:guid}", GetEntryDetail)
+            .WithSummary("Get detailed tournament entry with daily equity curve");
+
+        group.MapGet("/active-strategies/{marketCode}", GetActiveStrategies)
+            .WithSummary("Get currently promoted strategies for a market");
     }
 
     private static async Task<TournamentRunDto> CreateTournament(
@@ -60,6 +69,31 @@ public class TournamentEndpoints : IEndpoint
     {
         return await bus.InvokeAsync<IReadOnlyList<TournamentEntryDto>>(
             new GetTournamentEntriesQuery(tournamentId));
+    }
+
+    private static async Task<IReadOnlyList<LeaderboardEntryDto>> GetLeaderboard(
+        [FromRoute] string marketCode, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<IReadOnlyList<LeaderboardEntryDto>>(
+            new GetLeaderboardQuery(marketCode));
+    }
+
+    private static async Task<IResult> GetEntryDetail(
+        [FromRoute] Guid entryId, IMessageBus bus)
+    {
+        var result = await bus.InvokeAsync<TournamentEntryDetailDto?>(
+            new GetTournamentEntryDetailQuery(entryId));
+
+        return result is null
+            ? Results.NotFound()
+            : Results.Ok(result);
+    }
+
+    private static async Task<IReadOnlyList<ActiveStrategyDto>> GetActiveStrategies(
+        [FromRoute] string marketCode, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<IReadOnlyList<ActiveStrategyDto>>(
+            new GetActiveStrategiesQuery(marketCode));
     }
 }
 

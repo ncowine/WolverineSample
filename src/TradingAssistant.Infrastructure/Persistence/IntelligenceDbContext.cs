@@ -186,12 +186,14 @@ public class IntelligenceDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.StrategyName).HasMaxLength(200).IsRequired();
             entity.Property(e => e.WinRate).HasPrecision(8, 4);
             entity.Property(e => e.SharpeRatio).HasPrecision(8, 4);
             entity.Property(e => e.MaxDrawdown).HasPrecision(8, 4);
             entity.Property(e => e.TotalReturn).HasPrecision(18, 4);
             entity.Property(e => e.AllocationPercent).HasPrecision(8, 2);
             entity.Property(e => e.RetirementReason).HasMaxLength(500);
+            entity.Property(e => e.EquityCurveJson).HasMaxLength(16_000);
             entity.HasIndex(e => new { e.Status, e.MarketCode });
             entity.HasIndex(e => e.StrategyId);
             entity.HasIndex(e => e.TournamentRunId);

@@ -92,6 +92,7 @@ public class EnterTournamentHandler
         {
             TournamentRunId = command.TournamentRunId,
             StrategyId = command.StrategyId,
+            StrategyName = strategy.Name,
             PaperAccountId = account.Id,
             MarketCode = tournament.MarketCode,
             StartDate = DateTime.UtcNow,

@@ -7,6 +7,7 @@ public class TournamentEntry : BaseEntity
 {
     public Guid TournamentRunId { get; set; }
     public Guid StrategyId { get; set; }
+    public string StrategyName { get; set; } = string.Empty;
     public Guid PaperAccountId { get; set; }
     public string MarketCode { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
@@ -27,4 +28,9 @@ public class TournamentEntry : BaseEntity
     public decimal AllocationPercent { get; set; } = 25m;
 
     public string? RetirementReason { get; set; }
+
+    /// <summary>
+    /// JSON array of daily equity snapshots: [{"date":"2026-03-01","value":100500.00}, ...]
+    /// </summary>
+    public string EquityCurveJson { get; set; } = "[]";
 }
