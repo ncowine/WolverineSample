@@ -439,11 +439,11 @@ sprints:
         epic: "Execution & Ops"
 
   - sprint_number: 12
-    status: "in_progress"
+    status: "completed"
     goal: "Operations + Claude Setup"
     capacity_points: 30
     committed_points: 24
-    completed_points: 21
+    completed_points: 24
     stories:
       - story_id: "STORY-057"
         title: "Data Quality Monitor"
@@ -472,7 +472,8 @@ sprints:
       - story_id: "STORY-070"
         title: "Tournament & Claude API Endpoints"
         points: 3
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Strategy Tournament"
 
   - sprint_number: 13
