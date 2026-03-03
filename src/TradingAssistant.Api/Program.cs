@@ -102,6 +102,7 @@ builder.Services.AddSingleton<TradingAssistant.Contracts.IClaudeClient, ClaudeCl
 builder.Services.AddHostedService<DcaPlanExecutionService>();
 builder.Services.AddHostedService<DailyPipelineService>();
 builder.Services.AddHostedService<MlRetrainService>();
+builder.Services.AddHostedService<BackfillService>();
 
 // Configure Wolverine
 builder.Host.UseWolverine(opts =>

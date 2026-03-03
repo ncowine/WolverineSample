@@ -14,6 +14,7 @@ public class MarketDataDbContext : DbContext
     public DbSet<WatchlistItem> WatchlistItems => Set<WatchlistItem>();
     public DbSet<StockUniverse> StockUniverses => Set<StockUniverse>();
     public DbSet<ScreenerRun> ScreenerRuns => Set<ScreenerRun>();
+    public DbSet<BackfillJob> BackfillJobs => Set<BackfillJob>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,6 +84,14 @@ public class MarketDataDbContext : DbContext
             entity.Property(e => e.StrategyName).HasMaxLength(200);
             entity.Property(e => e.ResultsJson).HasMaxLength(500_000);
             entity.Property(e => e.WarningsJson).HasMaxLength(8_000);
+        });
+
+        modelBuilder.Entity<BackfillJob>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.UniverseId);
+            entity.HasIndex(e => e.Status);
+            entity.Property(e => e.ErrorLog).HasMaxLength(50_000);
         });
     }
 }
