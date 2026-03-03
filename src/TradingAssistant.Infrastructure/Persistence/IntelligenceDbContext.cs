@@ -25,6 +25,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<FeatureSnapshot> FeatureSnapshots => Set<FeatureSnapshot>();
     public DbSet<MlModel> MlModels => Set<MlModel>();
     public DbSet<TradeReview> TradeReviews => Set<TradeReview>();
+    public DbSet<StrategyDecayAlert> StrategyDecayAlerts => Set<StrategyDecayAlert>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -307,6 +308,29 @@ public class IntelligenceDbContext : DbContext
             entity.HasIndex(e => e.TradeId).IsUnique();
             entity.HasIndex(e => new { e.Symbol, e.ReviewedAt });
             entity.HasIndex(e => e.OutcomeClass);
+            entity.HasIndex(e => e.MarketCode);
+        });
+
+        modelBuilder.Entity<StrategyDecayAlert>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.StrategyName).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.TriggerReason).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.ClaudeAnalysis).HasMaxLength(4_000);
+            entity.Property(e => e.ResolutionNote).HasMaxLength(1_000);
+            entity.Property(e => e.Rolling30DaySharpe).HasPrecision(8, 4);
+            entity.Property(e => e.Rolling60DaySharpe).HasPrecision(8, 4);
+            entity.Property(e => e.Rolling90DaySharpe).HasPrecision(8, 4);
+            entity.Property(e => e.Rolling30DayWinRate).HasPrecision(8, 4);
+            entity.Property(e => e.Rolling60DayWinRate).HasPrecision(8, 4);
+            entity.Property(e => e.Rolling90DayWinRate).HasPrecision(8, 4);
+            entity.Property(e => e.Rolling30DayAvgPnl).HasPrecision(18, 4);
+            entity.Property(e => e.Rolling60DayAvgPnl).HasPrecision(18, 4);
+            entity.Property(e => e.Rolling90DayAvgPnl).HasPrecision(18, 4);
+            entity.Property(e => e.HistoricalSharpe).HasPrecision(8, 4);
+            entity.HasIndex(e => e.StrategyId);
+            entity.HasIndex(e => new { e.AlertType, e.IsResolved });
             entity.HasIndex(e => e.MarketCode);
         });
     }

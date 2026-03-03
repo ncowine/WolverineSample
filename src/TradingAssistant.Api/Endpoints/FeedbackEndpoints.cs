@@ -46,6 +46,15 @@ public class FeedbackEndpoints : IEndpoint
 
         group.MapGet("/trade-reviews/{tradeId:guid}", GetTradeReviewByTradeId)
             .WithSummary("Get trade review for a specific trade");
+
+        group.MapPost("/check-decay", CheckDecay)
+            .WithSummary("Check if a strategy is showing signs of decay");
+
+        group.MapGet("/decay-alerts", GetDecayAlerts)
+            .WithSummary("Get active decay alerts with optional market filter");
+
+        group.MapPost("/decay-alerts/{alertId:guid}/resolve", ResolveDecayAlert)
+            .WithSummary("Resolve (acknowledge) a decay alert");
     }
 
     private static async Task<IReadOnlyList<PipelineRunStatusDto>> GetPipelineStatus(
@@ -133,6 +142,36 @@ public class FeedbackEndpoints : IEndpoint
             new GetTradeReviewByTradeIdQuery(tradeId), db);
         return result is null
             ? Results.NotFound($"No review found for trade '{tradeId}'.")
+            : Results.Ok(result);
+    }
+
+    private static async Task<CheckDecayResultDto> CheckDecay(
+        [FromBody] CheckDecayCommand command,
+        IClaudeClient claude,
+        IntelligenceDbContext db,
+        ILogger<CheckDecayHandler> logger)
+    {
+        return await CheckDecayHandler.HandleAsync(command, claude, db, logger);
+    }
+
+    private static async Task<IReadOnlyList<StrategyDecayAlertDto>> GetDecayAlerts(
+        [FromQuery] string? marketCode,
+        [FromQuery] bool includeResolved,
+        IntelligenceDbContext db)
+    {
+        return await GetDecayAlertsHandler.HandleAsync(
+            new GetDecayAlertsQuery(marketCode, includeResolved), db);
+    }
+
+    private static async Task<IResult> ResolveDecayAlert(
+        [FromRoute] Guid alertId,
+        [FromBody] ResolveDecayAlertCommand command,
+        IntelligenceDbContext db)
+    {
+        var result = await ResolveDecayAlertHandler.HandleAsync(
+            new ResolveDecayAlertCommand(alertId, command.Note), db);
+        return result is null
+            ? Results.NotFound($"Decay alert '{alertId}' not found.")
             : Results.Ok(result);
     }
 }
