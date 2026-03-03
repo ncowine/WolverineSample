@@ -17,6 +17,9 @@ public record StrategyAutopsyInput(
 
 public record StrategyAutopsyOutput
 {
+    [JsonPropertyName("primaryLossReason")]
+    public string PrimaryLossReason { get; init; } = string.Empty;
+
     [JsonPropertyName("rootCauses")]
     public IReadOnlyList<string> RootCauses { get; init; } = [];
 
@@ -73,9 +76,10 @@ public static class StrategyAutopsyPrompt
               - {worstTrades}
 
             Respond with JSON matching this schema:
+            primaryLossReason (string — MUST be one of: "RegimeMismatch", "SignalDegradation", "BlackSwan", "PositionSizingError", "StopLossFailure"),
             rootCauses (array of strings),
             marketConditionImpact (string),
-            recommendations (array of strings),
+            recommendations (array of strings — actionable, e.g. "tighten stops", "reduce allocation", "retire"),
             shouldRetire (boolean),
             confidence (decimal 0.0-1.0),
             summary (string).
