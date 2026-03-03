@@ -584,7 +584,7 @@ sprints:
     goal: "Feedback Loop & ML Ops"
     capacity_points: 30
     committed_points: 26
-    completed_points: 5
+    completed_points: 10
     stories:
       - story_id: "STORY-075"
         title: "Model Retraining Pipeline"
@@ -595,7 +595,8 @@ sprints:
       - story_id: "STORY-076"
         title: "AI Trade Journal"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Feedback & Learning"
       - story_id: "STORY-077"
         title: "Strategy Decay Monitor"
