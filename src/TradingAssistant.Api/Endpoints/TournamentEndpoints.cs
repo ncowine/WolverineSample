@@ -1,0 +1,66 @@
+using Microsoft.AspNetCore.Mvc;
+using TradingAssistant.Contracts.Commands;
+using TradingAssistant.Contracts.DTOs;
+using TradingAssistant.Contracts.Queries;
+using TradingAssistant.SharedKernel;
+using Wolverine;
+
+namespace TradingAssistant.Api.Endpoints;
+
+public class TournamentEndpoints : IEndpoint
+{
+    public static void MapEndpoint(IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/api/tournament")
+            .WithTags("Tournament")
+            .RequireAuthorization();
+
+        group.MapPost("/", CreateTournament)
+            .WithSummary("Create a new tournament run for a market");
+
+        group.MapPost("/{tournamentId:guid}/enter", EnterTournament)
+            .WithSummary("Enter a strategy into a tournament with an isolated paper account");
+
+        group.MapGet("/{tournamentId:guid}", GetTournament)
+            .WithSummary("Get tournament run details");
+
+        group.MapGet("/{tournamentId:guid}/entries", GetTournamentEntries)
+            .WithSummary("Get all entries in a tournament ordered by performance");
+    }
+
+    private static async Task<TournamentRunDto> CreateTournament(
+        [FromBody] CreateTournamentCommand command, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<TournamentRunDto>(command);
+    }
+
+    private static async Task<EnterTournamentResultDto> EnterTournament(
+        [FromRoute] Guid tournamentId,
+        [FromBody] EnterTournamentRequest request,
+        IMessageBus bus)
+    {
+        var command = new EnterTournamentCommand(
+            tournamentId, request.StrategyId, request.PaperAccountBalance);
+        return await bus.InvokeAsync<EnterTournamentResultDto>(command);
+    }
+
+    private static async Task<IResult> GetTournament(
+        [FromRoute] Guid tournamentId, IMessageBus bus)
+    {
+        var result = await bus.InvokeAsync<TournamentRunDto?>(
+            new GetTournamentQuery(tournamentId));
+
+        return result is null
+            ? Results.NotFound()
+            : Results.Ok(result);
+    }
+
+    private static async Task<IReadOnlyList<TournamentEntryDto>> GetTournamentEntries(
+        [FromRoute] Guid tournamentId, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<IReadOnlyList<TournamentEntryDto>>(
+            new GetTournamentEntriesQuery(tournamentId));
+    }
+}
+
+public record EnterTournamentRequest(Guid StrategyId, decimal PaperAccountBalance = 100_000m);

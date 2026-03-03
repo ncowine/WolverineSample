@@ -15,6 +15,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<CostProfile> CostProfiles => Set<CostProfile>();
     public DbSet<PipelineRunLog> PipelineRunLogs => Set<PipelineRunLog>();
     public DbSet<CircuitBreakerEvent> CircuitBreakerEvents => Set<CircuitBreakerEvent>();
+    public DbSet<TournamentRun> TournamentRuns => Set<TournamentRun>();
     public DbSet<TournamentEntry> TournamentEntries => Set<TournamentEntry>();
     public DbSet<StrategyAssignment> StrategyAssignments => Set<StrategyAssignment>();
     public DbSet<StrategyRegimeScore> StrategyRegimeScores => Set<StrategyRegimeScore>();
@@ -173,6 +174,14 @@ public class IntelligenceDbContext : DbContext
             entity.HasIndex(e => new { e.AccountId, e.EventDate });
         });
 
+        modelBuilder.Entity<TournamentRun>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.HasIndex(e => new { e.MarketCode, e.Status });
+        });
+
         modelBuilder.Entity<TournamentEntry>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -185,6 +194,7 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.RetirementReason).HasMaxLength(500);
             entity.HasIndex(e => new { e.Status, e.MarketCode });
             entity.HasIndex(e => e.StrategyId);
+            entity.HasIndex(e => e.TournamentRunId);
         });
 
         modelBuilder.Entity<StrategyAssignment>(entity =>
