@@ -49,9 +49,10 @@ public class MarketDataEndpoints : IEndpoint
             .RequireAuthorization();
     }
 
-    private static async Task<StockPriceDto> GetStockPrice(string symbol, IMessageBus bus)
+    private static async Task<IResult> GetStockPrice(string symbol, IMessageBus bus)
     {
-        return await bus.InvokeAsync<StockPriceDto>(new GetStockPriceQuery(symbol));
+        var result = await bus.InvokeAsync<StockPriceDto?>(new GetStockPriceQuery(symbol));
+        return result is not null ? Results.Ok(result) : Results.NotFound();
     }
 
     private static async Task<List<CandleDto>> GetHistoricalPrices(
