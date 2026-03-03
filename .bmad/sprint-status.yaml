@@ -153,10 +153,10 @@ sprints:
 
   # === NEW: Quantitative Trading Engine ===
   - sprint_number: 4
-    status: "in_progress"
+    status: "completed"
     goal: "Data Foundation — Real market data pipeline"
     committed_points: 18
-    completed_points: 13
+    completed_points: 18
     stories:
       - story_id: "STORY-020"
         title: "Yahoo Finance data provider integration"
@@ -179,7 +179,8 @@ sprints:
       - story_id: "STORY-023"
         title: "Bulk data backfill background service"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Data Foundation"
 
   - sprint_number: 5
