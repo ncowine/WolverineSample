@@ -24,4 +24,6 @@ public record FeatureImportanceDto(string Name, double Importance);
 public record RetrainResultDto(
     bool Success,
     string? FailureReason,
-    MlModelDto? Model);
+    MlModelDto? Model,
+    string? RollbackReason = null,
+    FeatureDriftResultDto? FeatureDrift = null);

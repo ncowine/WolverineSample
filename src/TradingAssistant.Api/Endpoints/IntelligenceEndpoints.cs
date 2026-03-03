@@ -51,6 +51,9 @@ public class IntelligenceEndpoints : IEndpoint
         group.MapPost("/ml/retrain", RetrainModel)
             .WithSummary("Train/retrain ML model for a market using labeled feature snapshots");
 
+        group.MapPost("/ml/retrain/{marketCode}", RetrainModelByMarket)
+            .WithSummary("Manually trigger ML model retraining for a specific market");
+
         group.MapGet("/ml/models/{marketCode}", GetMlModels)
             .WithSummary("Get ML model metadata for a market");
 
@@ -156,6 +159,13 @@ public class IntelligenceEndpoints : IEndpoint
         [FromBody] RetrainModelCommand command, IMessageBus bus)
     {
         return await bus.InvokeAsync<RetrainResultDto>(command);
+    }
+
+    private static async Task<RetrainResultDto> RetrainModelByMarket(
+        [FromRoute] string marketCode, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<RetrainResultDto>(
+            new RetrainModelCommand(marketCode));
     }
 
     private static async Task<IReadOnlyList<MlModelDto>> GetMlModels(

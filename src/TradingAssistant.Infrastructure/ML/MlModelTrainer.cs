@@ -199,6 +199,134 @@ public class MlModelTrainer
     }
 
     /// <summary>
+    /// Detect feature drift by comparing mean/stddev between training window and recent window.
+    /// A feature is "significantly drifted" when |mean_shift / training_stddev| > threshold.
+    /// </summary>
+    public static FeatureDriftReport ComputeFeatureDrift(
+        List<FeatureVector> trainingData,
+        List<FeatureVector> recentData,
+        double driftThreshold = 1.5)
+    {
+        var entries = new List<FeatureDriftReport.Entry>();
+
+        foreach (var featureName in NumericFeatures)
+        {
+            var trainValues = ExtractNumericFeature(trainingData, featureName);
+            var recentValues = ExtractNumericFeature(recentData, featureName);
+
+            if (trainValues.Length < 5 || recentValues.Length < 5)
+                continue;
+
+            var trainMean = trainValues.Average();
+            var recentMean = recentValues.Average();
+            var trainStd = StdDev(trainValues, trainMean);
+            var recentStd = StdDev(recentValues, recentMean);
+
+            // Drift magnitude: normalized mean shift (avoid div by zero)
+            var magnitude = trainStd > 1e-9
+                ? Math.Abs(recentMean - trainMean) / trainStd
+                : (Math.Abs(recentMean - trainMean) > 1e-9 ? double.MaxValue : 0);
+
+            var isSignificant = magnitude > driftThreshold;
+
+            entries.Add(new FeatureDriftReport.Entry(
+                featureName, trainMean, recentMean, trainStd, recentStd,
+                magnitude, isSignificant));
+        }
+
+        return new FeatureDriftReport(
+            entries, trainingData.Count, recentData.Count, driftThreshold);
+    }
+
+    private static double[] ExtractNumericFeature(List<FeatureVector> data, string featureName)
+    {
+        return featureName switch
+        {
+            "smaShort" => data.Select(v => (double)v.SmaShort).ToArray(),
+            "smaMedium" => data.Select(v => (double)v.SmaMedium).ToArray(),
+            "smaLong" => data.Select(v => (double)v.SmaLong).ToArray(),
+            "emaShort" => data.Select(v => (double)v.EmaShort).ToArray(),
+            "emaMedium" => data.Select(v => (double)v.EmaMedium).ToArray(),
+            "emaLong" => data.Select(v => (double)v.EmaLong).ToArray(),
+            "rsi" => data.Select(v => (double)v.Rsi).ToArray(),
+            "macdLine" => data.Select(v => (double)v.MacdLine).ToArray(),
+            "macdSignal" => data.Select(v => (double)v.MacdSignal).ToArray(),
+            "macdHistogram" => data.Select(v => (double)v.MacdHistogram).ToArray(),
+            "stochasticK" => data.Select(v => (double)v.StochasticK).ToArray(),
+            "stochasticD" => data.Select(v => (double)v.StochasticD).ToArray(),
+            "atr" => data.Select(v => (double)v.Atr).ToArray(),
+            "bollingerUpper" => data.Select(v => (double)v.BollingerUpper).ToArray(),
+            "bollingerMiddle" => data.Select(v => (double)v.BollingerMiddle).ToArray(),
+            "bollingerLower" => data.Select(v => (double)v.BollingerLower).ToArray(),
+            "bollingerBandwidth" => data.Select(v => (double)v.BollingerBandwidth).ToArray(),
+            "bollingerPercentB" => data.Select(v => (double)v.BollingerPercentB).ToArray(),
+            "obv" => data.Select(v => (double)v.Obv).ToArray(),
+            "volumeMa" => data.Select(v => (double)v.VolumeMa).ToArray(),
+            "relativeVolume" => data.Select(v => (double)v.RelativeVolume).ToArray(),
+            "closePrice" => data.Select(v => (double)v.ClosePrice).ToArray(),
+            "highPrice" => data.Select(v => (double)v.HighPrice).ToArray(),
+            "lowPrice" => data.Select(v => (double)v.LowPrice).ToArray(),
+            "openPrice" => data.Select(v => (double)v.OpenPrice).ToArray(),
+            "dailyRange" => data.Select(v => (double)v.DailyRange).ToArray(),
+            "priceToSmaShort" => data.Select(v => (double)v.PriceToSmaShort).ToArray(),
+            "priceToSmaLong" => data.Select(v => (double)v.PriceToSmaLong).ToArray(),
+            "priceToEmaShort" => data.Select(v => (double)v.PriceToEmaShort).ToArray(),
+            "atrPercent" => data.Select(v => (double)v.AtrPercent).ToArray(),
+            "regimeConfidence" => data.Select(v => (double)v.RegimeConfidence).ToArray(),
+            "daysSinceRegimeChange" => data.Select(v => (double)v.DaysSinceRegimeChange).ToArray(),
+            "vixLevel" => data.Select(v => (double)v.VixLevel).ToArray(),
+            "breadthScore" => data.Select(v => (double)v.BreadthScore).ToArray(),
+            "dayOfWeek" => data.Select(v => (double)v.DayOfWeek).ToArray(),
+            "winStreak" => data.Select(v => (double)v.WinStreak).ToArray(),
+            "lossStreak" => data.Select(v => (double)v.LossStreak).ToArray(),
+            "recentWinRate" => data.Select(v => (double)v.RecentWinRate).ToArray(),
+            "portfolioHeat" => data.Select(v => (double)v.PortfolioHeat).ToArray(),
+            "openPositionCount" => data.Select(v => (double)v.OpenPositionCount).ToArray(),
+            "tradePrice" => data.Select(v => (double)v.TradePrice).ToArray(),
+            _ => Array.Empty<double>()
+        };
+    }
+
+    private static double StdDev(double[] values, double mean)
+    {
+        if (values.Length < 2) return 0;
+        var sumSquares = values.Sum(v => (v - mean) * (v - mean));
+        return Math.Sqrt(sumSquares / (values.Length - 1));
+    }
+
+    /// <summary>
+    /// Feature drift analysis report.
+    /// </summary>
+    public class FeatureDriftReport
+    {
+        public List<Entry> Entries { get; }
+        public int TrainingWindowSize { get; }
+        public int RecentWindowSize { get; }
+        public double Threshold { get; }
+
+        public bool HasSignificantDrift => Entries.Any(e => e.IsSignificant);
+        public List<Entry> SignificantEntries => Entries.Where(e => e.IsSignificant).ToList();
+
+        public FeatureDriftReport(
+            List<Entry> entries, int trainingWindowSize, int recentWindowSize, double threshold)
+        {
+            Entries = entries;
+            TrainingWindowSize = trainingWindowSize;
+            RecentWindowSize = recentWindowSize;
+            Threshold = threshold;
+        }
+
+        public record Entry(
+            string FeatureName,
+            double TrainingMean,
+            double RecentMean,
+            double TrainingStdDev,
+            double RecentStdDev,
+            double DriftMagnitude,
+            bool IsSignificant);
+    }
+
+    /// <summary>
     /// Result of a training run.
     /// </summary>
     public class TrainResult

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TradingAssistant.Contracts.Commands;
 using TradingAssistant.Contracts.DTOs;
+using TradingAssistant.Contracts.Events;
 using TradingAssistant.Domain.Intelligence;
 using TradingAssistant.Domain.Intelligence.Enums;
 using TradingAssistant.Infrastructure.ML;
@@ -13,12 +14,15 @@ namespace TradingAssistant.Application.Handlers.Intelligence;
 /// <summary>
 /// Loads labeled FeatureSnapshots, trains a LightGBM binary classification model,
 /// saves the model to disk, and persists metadata to IntelligenceDbContext.
+///
+/// Auto-rollback: if new model AUC &lt; previous active model AUC, the old model stays active.
+/// Publishes ModelTrained event on successful training via tuple cascade.
 /// </summary>
 public class RetrainModelHandler
 {
     internal const string ModelBasePath = "data/models";
 
-    public static async Task<RetrainResultDto> HandleAsync(
+    public static async Task<(RetrainResultDto, ModelTrained)> HandleAsync(
         RetrainModelCommand command,
         IntelligenceDbContext intelDb,
         ILogger<RetrainModelHandler> logger)
@@ -52,7 +56,35 @@ public class RetrainModelHandler
         {
             logger.LogWarning("Training failed for {MarketCode}: {Reason}",
                 command.MarketCode, result.FailureReason);
-            return new RetrainResultDto(false, result.FailureReason, null);
+            var failEvent = new ModelTrained(command.MarketCode, 0, 0, false,
+                result.FailureReason, DateTime.UtcNow);
+            return (new RetrainResultDto(false, result.FailureReason, null), failEvent);
+        }
+
+        // Feature drift detection (compare training window vs most recent 20%)
+        FeatureDriftResultDto? driftDto = null;
+        if (vectors.Count >= 50)
+        {
+            var recentCount = Math.Max(10, vectors.Count / 5);
+            var trainingWindow = vectors.Take(vectors.Count - recentCount).ToList();
+            var recentWindow = vectors.Skip(vectors.Count - recentCount).ToList();
+            var driftReport = MlModelTrainer.ComputeFeatureDrift(trainingWindow, recentWindow);
+
+            if (driftReport.HasSignificantDrift)
+            {
+                logger.LogWarning(
+                    "Feature drift detected for {MarketCode}: {Count} features shifted significantly",
+                    command.MarketCode, driftReport.SignificantEntries.Count);
+            }
+
+            driftDto = new FeatureDriftResultDto(
+                driftReport.Entries.Select(e => new FeatureDriftEntry(
+                    e.FeatureName, e.TrainingMean, e.RecentMean,
+                    e.TrainingStdDev, e.RecentStdDev,
+                    e.DriftMagnitude, e.IsSignificant)).ToList(),
+                driftReport.HasSignificantDrift,
+                driftReport.TrainingWindowSize,
+                driftReport.RecentWindowSize);
         }
 
         // Determine next version
@@ -65,11 +97,31 @@ public class RetrainModelHandler
         var modelPath = Path.Combine(ModelBasePath, command.MarketCode, $"v{nextVersion}.zip");
         trainer.SaveModel(result, modelPath);
 
-        // Deactivate previous active models if new model meets AUC threshold
-        var isActive = result.MeetsMinimumAuc;
+        // Auto-rollback: compare against previous active model's AUC
+        var previousActive = await intelDb.MlModels
+            .Where(m => m.MarketCode == command.MarketCode && m.IsActive)
+            .OrderByDescending(m => m.ModelVersion)
+            .FirstOrDefaultAsync();
 
-        if (isActive)
+        var meetsMinimum = result.MeetsMinimumAuc;
+        string? rollbackReason = null;
+
+        if (!meetsMinimum)
         {
+            rollbackReason = $"AUC {result.Auc:F4} below minimum threshold {MlModelTrainer.MinimumAuc}";
+        }
+        else if (previousActive is not null && result.Auc < previousActive.Auc)
+        {
+            // Auto-rollback: new model is worse than current active
+            rollbackReason = $"AUC {result.Auc:F4} < previous active v{previousActive.ModelVersion} AUC {previousActive.Auc:F4}";
+            meetsMinimum = false; // Don't activate
+        }
+
+        var isActive = meetsMinimum;
+
+        if (isActive && previousActive is not null)
+        {
+            // Deactivate previous active models
             var activeModels = await intelDb.MlModels
                 .Where(m => m.MarketCode == command.MarketCode && m.IsActive)
                 .ToListAsync();
@@ -79,6 +131,13 @@ public class RetrainModelHandler
                 m.IsActive = false;
                 m.DeactivationReason = $"Superseded by v{nextVersion}";
             }
+        }
+
+        if (rollbackReason is not null)
+        {
+            logger.LogWarning(
+                "ML model v{Version} for {MarketCode} rolled back: {Reason}",
+                nextVersion, command.MarketCode, rollbackReason);
         }
 
         // Persist model metadata
@@ -100,7 +159,7 @@ public class RetrainModelHandler
             LossSamples = result.LossSamples,
             FeatureImportanceJson = result.TopFeaturesJson,
             IsActive = isActive,
-            DeactivationReason = isActive ? null : $"AUC {result.Auc:F4} below minimum {MlModelTrainer.MinimumAuc}"
+            DeactivationReason = isActive ? null : rollbackReason
         };
 
         intelDb.MlModels.Add(mlModel);
@@ -122,6 +181,10 @@ public class RetrainModelHandler
             mlModel.WinSamples, mlModel.LossSamples,
             mlModel.IsActive, mlModel.DeactivationReason, topFeatures);
 
-        return new RetrainResultDto(true, null, dto);
+        var modelTrainedEvent = new ModelTrained(
+            command.MarketCode, nextVersion, result.Auc,
+            isActive, rollbackReason, mlModel.TrainedAt);
+
+        return (new RetrainResultDto(true, null, dto, rollbackReason, driftDto), modelTrainedEvent);
     }
 }

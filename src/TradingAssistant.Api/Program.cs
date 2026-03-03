@@ -101,6 +101,7 @@ builder.Services.AddSingleton<TradingAssistant.Contracts.IClaudeClient, ClaudeCl
 // Register background services
 builder.Services.AddHostedService<DcaPlanExecutionService>();
 builder.Services.AddHostedService<DailyPipelineService>();
+builder.Services.AddHostedService<MlRetrainService>();
 
 // Configure Wolverine
 builder.Host.UseWolverine(opts =>

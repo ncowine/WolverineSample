@@ -217,7 +217,7 @@ public class MlModelTrainerTests
         }
         await intelDb.SaveChangesAsync();
 
-        var result = await RetrainModelHandler.HandleAsync(
+        var (result, _) = await RetrainModelHandler.HandleAsync(
             new RetrainModelCommand("US_SP500"), intelDb, logger);
 
         Assert.False(result.Success);
@@ -256,7 +256,7 @@ public class MlModelTrainerTests
         }
         await intelDb.SaveChangesAsync();
 
-        var result = await RetrainModelHandler.HandleAsync(
+        var (result, trainedEvent) = await RetrainModelHandler.HandleAsync(
             new RetrainModelCommand("US_SP500"), intelDb, logger);
 
         Assert.True(result.Success);
@@ -264,6 +264,8 @@ public class MlModelTrainerTests
         Assert.Equal("US_SP500", result.Model!.MarketCode);
         Assert.Equal(1, result.Model.ModelVersion);
         Assert.True(result.Model.TrainingSamples > 0);
+        Assert.Equal("US_SP500", trainedEvent.MarketCode);
+        Assert.Equal(1, trainedEvent.ModelVersion);
 
         // Verify persisted to DB
         var persisted = intelDb.MlModels.FirstOrDefault();
@@ -304,15 +306,16 @@ public class MlModelTrainerTests
         await intelDb.SaveChangesAsync();
 
         // Train first model
-        await RetrainModelHandler.HandleAsync(
+        var (_, event1) = await RetrainModelHandler.HandleAsync(
             new RetrainModelCommand("US_SP500"), intelDb, logger);
 
         // Train second model
-        var result2 = await RetrainModelHandler.HandleAsync(
+        var (result2, event2) = await RetrainModelHandler.HandleAsync(
             new RetrainModelCommand("US_SP500"), intelDb, logger);
 
         Assert.True(result2.Success);
         Assert.Equal(2, result2.Model!.ModelVersion);
+        Assert.Equal(2, event2.ModelVersion);
 
         // Cleanup
         foreach (var m in intelDb.MlModels.ToList())
