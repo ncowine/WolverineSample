@@ -151,12 +151,10 @@ builder.Services.AddSwaggerGen(c =>
 
 // Suppress non-fatal ML.NET assembly warnings from JasperFx runtime compiler
 // (OneDal is a native Intel library with no managed assembly; FastTree is a transitive dep)
-var originalConsoleOut = Console.Out;
-Console.SetOut(new MlAssemblyWarningFilter(originalConsoleOut));
+// Filter stays active because Wolverine defers code generation until first message dispatch.
+Console.SetOut(new MlAssemblyWarningFilter(Console.Out));
 
 var app = builder.Build();
-
-Console.SetOut(originalConsoleOut);
 
 // Apply migrations and seed data in Development
 await TradingAssistant.Api.DatabaseInitializer.InitializeAsync(app);
