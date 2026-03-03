@@ -584,7 +584,7 @@ sprints:
     goal: "Feedback Loop & ML Ops"
     capacity_points: 30
     committed_points: 26
-    completed_points: 20
+    completed_points: 23
     stories:
       - story_id: "STORY-075"
         title: "Model Retraining Pipeline"
@@ -613,7 +613,8 @@ sprints:
       - story_id: "STORY-079"
         title: "Monthly Performance Attribution"
         points: 3
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "Feedback & Learning"
       - story_id: "STORY-080"
         title: "ML & Feedback API Endpoints"
