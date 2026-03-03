@@ -61,6 +61,12 @@ public class FeedbackEndpoints : IEndpoint
 
         group.MapPost("/generate-pattern-report", GeneratePatternReport)
             .WithSummary("Generate a mistake pattern report with Claude analysis");
+
+        group.MapGet("/attribution/{marketCode}/{year:int}/{month:int}", GetAttribution)
+            .WithSummary("Get monthly performance attribution for a market");
+
+        group.MapGet("/attribution/{marketCode}/rolling", GetRollingAttribution)
+            .WithSummary("Get rolling 12-month attribution summary for a market");
     }
 
     private static async Task<IReadOnlyList<PipelineRunStatusDto>> GetPipelineStatus(
@@ -196,5 +202,25 @@ public class FeedbackEndpoints : IEndpoint
         ILogger<GeneratePatternReportHandler> logger)
     {
         return await GeneratePatternReportHandler.HandleAsync(command, claude, db, logger);
+    }
+
+    private static async Task<MonthlyAttributionDto> GetAttribution(
+        [FromRoute] string marketCode,
+        [FromRoute] int year,
+        [FromRoute] int month,
+        IntelligenceDbContext intelligenceDb,
+        MarketDataDbContext marketDb,
+        ILogger<GetAttributionHandler> logger)
+    {
+        return await GetAttributionHandler.HandleAsync(
+            new GetAttributionQuery(marketCode, year, month), intelligenceDb, marketDb, logger);
+    }
+
+    private static async Task<RollingAttributionSummaryDto> GetRollingAttribution(
+        [FromRoute] string marketCode,
+        IntelligenceDbContext db)
+    {
+        return await GetAttributionHandler.HandleRollingAsync(
+            new GetRollingAttributionQuery(marketCode), db);
     }
 }

@@ -27,6 +27,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<TradeReview> TradeReviews => Set<TradeReview>();
     public DbSet<StrategyDecayAlert> StrategyDecayAlerts => Set<StrategyDecayAlert>();
     public DbSet<MistakePatternReport> MistakePatternReports => Set<MistakePatternReport>();
+    public DbSet<MonthlyAttribution> MonthlyAttributions => Set<MonthlyAttribution>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -346,6 +347,20 @@ public class IntelligenceDbContext : DbContext
             entity.Property(e => e.ClaudeAnalysis).HasMaxLength(4_000);
             entity.HasIndex(e => e.MarketCode);
             entity.HasIndex(e => e.AnalyzedAt);
+        });
+
+        modelBuilder.Entity<MonthlyAttribution>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.TotalReturn).HasPrecision(18, 4);
+            entity.Property(e => e.Alpha).HasPrecision(18, 4);
+            entity.Property(e => e.BetaContribution).HasPrecision(18, 4);
+            entity.Property(e => e.RegimeContribution).HasPrecision(18, 4);
+            entity.Property(e => e.Residual).HasPrecision(18, 4);
+            entity.Property(e => e.Beta).HasPrecision(8, 4);
+            entity.Property(e => e.BenchmarkReturn).HasPrecision(18, 4);
+            entity.HasIndex(e => new { e.MarketCode, e.Year, e.Month }).IsUnique();
         });
     }
 }
