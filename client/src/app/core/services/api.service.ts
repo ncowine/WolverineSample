@@ -176,6 +176,11 @@ export class ApiService {
     return this.http.get<any>(`/api/strategies/${strategyId}/optimized-params`);
   }
 
+  // --- Intelligence ---
+  detectStockRegime(symbol: string) {
+    return this.http.get<any>(`/api/intelligence/detect-regime/${symbol}`);
+  }
+
   // --- Audit ---
   getAuditLogs(params?: any) {
     return this.http.get<any>('/api/audit-logs', { params: this.toHttpParams(params) });

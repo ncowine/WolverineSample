@@ -15,6 +15,10 @@ public class IntelligenceEndpoints : IEndpoint
             .WithTags("Intelligence")
             .RequireAuthorization();
 
+        group.MapGet("/detect-regime/{symbol}", DetectStockRegime)
+            .WithSummary("Detect market regime for a stock from its price candles")
+            .AllowAnonymous();
+
         group.MapGet("/regime/{marketCode}", GetCurrentRegime)
             .WithSummary("Get current market regime for a market");
 
@@ -65,6 +69,13 @@ public class IntelligenceEndpoints : IEndpoint
 
         group.MapPost("/ml/predict", PredictConfidence)
             .WithSummary("Run ML prediction for a symbol in a market");
+    }
+
+    private static async Task<StockRegimeDto> DetectStockRegime(
+        [FromRoute] string symbol, IMessageBus bus)
+    {
+        return await bus.InvokeAsync<StockRegimeDto>(
+            new DetectStockRegimeQuery(symbol));
     }
 
     private static async Task<MarketRegimeDto> GetCurrentRegime(

@@ -15,3 +15,9 @@ public record GetLatestBreadthQuery(string MarketCode);
 public record GetCorrelationMatrixQuery;
 
 public record GetPipelineStatusQuery(string? MarketCode = null);
+
+/// <summary>
+/// Lightweight stock-level regime detection from price candles.
+/// Returns the detected regime and recommended strategy template.
+/// </summary>
+public record DetectStockRegimeQuery(string Symbol);

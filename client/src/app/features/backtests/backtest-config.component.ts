@@ -47,9 +47,9 @@ interface StrategyTemplate {
 }
 
 /** Pre-built strategy templates matching backend PlaybookGenerator */
-const TEMPLATES: StrategyTemplate[] = [
-  {
-    id: 'momentum',
+const TEMPLATES: Record<string, StrategyTemplate> = {
+  Momentum: {
+    id: 'Momentum',
     name: 'Momentum',
     description: 'Ride strong trends. Buys when short-term moving averages cross above long-term, with RSI confirming strength.',
     badge: 'Best for trending markets',
@@ -76,8 +76,8 @@ const TEMPLATES: StrategyTemplate[] = [
     maxPositions: 6,
     maxDrawdown: 15,
   },
-  {
-    id: 'meanReversion',
+  MeanReversion: {
+    id: 'MeanReversion',
     name: 'Mean Reversion',
     description: 'Buy the dip. Enters when price is oversold (low RSI, below Bollinger Band) and exits on recovery.',
     badge: 'Best for sideways markets',
@@ -104,8 +104,8 @@ const TEMPLATES: StrategyTemplate[] = [
     maxPositions: 5,
     maxDrawdown: 12,
   },
-  {
-    id: 'breakout',
+  Breakout: {
+    id: 'Breakout',
     name: 'Breakout',
     description: 'Catch explosive moves. Enters when price breaks above Bollinger Bands with volume surge.',
     badge: 'Best for volatile markets',
@@ -131,7 +131,7 @@ const TEMPLATES: StrategyTemplate[] = [
     maxPositions: 5,
     maxDrawdown: 15,
   },
-];
+};
 
 @Component({
   selector: 'app-backtest-config',
@@ -142,103 +142,92 @@ const TEMPLATES: StrategyTemplate[] = [
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold">Backtest</h2>
         <button class="btn btn-ghost btn-xs" (click)="advancedMode.set(!advancedMode())">
-          {{ advancedMode() ? 'Simple Mode' : 'Advanced Mode' }}
+          {{ advancedMode() ? 'Smart Mode' : 'Advanced Mode' }}
         </button>
       </div>
 
-      <!-- ===== QUICK START MODE (default) ===== -->
+      <!-- ===== SMART MODE (default) ===== -->
       @if (!advancedMode()) {
 
-        <!-- Strategy template cards -->
-        <div class="mb-6">
-          <p class="text-sm text-base-content/60 mb-3">Pick a strategy style:</p>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            @for (tpl of templates; track tpl.id) {
-              <div class="card bg-base-200 cursor-pointer transition-all hover:shadow-lg"
-                   [class.ring-2]="selectedTemplate() === tpl.id"
-                   [class.ring-primary]="selectedTemplate() === tpl.id"
-                   (click)="selectTemplate(tpl.id)">
-                <div class="card-body p-4 gap-2">
-                  <div class="flex items-center gap-2">
-                    <h3 class="card-title text-sm">{{ tpl.name }}</h3>
-                    @if (selectedTemplate() === tpl.id) {
-                      <span class="badge badge-primary badge-xs">Selected</span>
-                    }
-                  </div>
-                  <p class="text-xs text-base-content/60">{{ tpl.description }}</p>
-                  <span class="badge badge-outline badge-xs mt-1">{{ tpl.badge }}</span>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Symbol + date range -->
         <div class="card bg-base-200 mb-6">
-          <div class="card-body p-4 gap-3">
-            <div class="grid grid-cols-3 gap-3">
-              <div class="form-control">
+          <div class="card-body p-5 gap-4">
+            <p class="text-base-content/60 text-sm">Enter a stock symbol. The system will analyze its price history, detect the current market regime, and automatically pick the best strategy.</p>
+
+            <div class="flex gap-3 items-end">
+              <div class="form-control flex-1">
                 <label class="label"><span class="label-text text-xs">Symbol</span></label>
-                <input class="input input-bordered input-sm font-mono uppercase" [(ngModel)]="symbol" placeholder="AAPL" />
+                <input class="input input-bordered input-lg font-mono uppercase text-center tracking-wider"
+                       [(ngModel)]="symbol" placeholder="AAPL"
+                       (keydown.enter)="runSmartBacktest()" />
               </div>
               <div class="form-control">
-                <label class="label"><span class="label-text text-xs">Start Date</span></label>
+                <label class="label"><span class="label-text text-xs">Start</span></label>
                 <input type="date" class="input input-bordered input-sm" [(ngModel)]="startDate" />
               </div>
               <div class="form-control">
-                <label class="label"><span class="label-text text-xs">End Date</span></label>
+                <label class="label"><span class="label-text text-xs">End</span></label>
                 <input type="date" class="input input-bordered input-sm" [(ngModel)]="endDate" />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Quick summary of what will run -->
-        @if (selectedTemplate()) {
+        <!-- Regime detection result (shown after analysis) -->
+        @if (detectedRegime()) {
           <div class="card bg-base-200 mb-6">
-            <div class="card-body p-4 gap-1">
-              <p class="text-xs text-base-content/60">Strategy summary:</p>
-              @if (getSelectedTemplate(); as tpl) {
-                <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+            <div class="card-body p-4 gap-3">
+              <div class="flex items-center gap-3">
+                <div class="badge badge-lg"
+                     [class.badge-success]="detectedRegime()!.regime === 'Bull'"
+                     [class.badge-error]="detectedRegime()!.regime === 'Bear'"
+                     [class.badge-warning]="detectedRegime()!.regime === 'HighVolatility'"
+                     [class.badge-info]="detectedRegime()!.regime === 'Sideways'">
+                  {{ detectedRegime()!.regime }}
+                </div>
+                <span class="text-sm font-semibold">{{ detectedRegime()!.recommendedTemplate }} Strategy Selected</span>
+                <span class="text-xs text-base-content/40">Confidence: {{ detectedRegime()!.confidence | number:'1.0-0' }}%</span>
+              </div>
+              <p class="text-xs text-base-content/60">{{ detectedRegime()!.explanation }}</p>
+
+              @if (getTemplate(detectedRegime()!.recommendedTemplate); as tpl) {
+                <div class="grid grid-cols-3 gap-2 text-xs font-mono mt-1">
                   <span>Stop Loss: {{ tpl.stopLoss.type }} x{{ tpl.stopLoss.multiplier }}</span>
                   <span>Take Profit: {{ tpl.takeProfit.type }} x{{ tpl.takeProfit.multiplier }}</span>
                   <span>Risk/Trade: {{ tpl.riskPercent }}%</span>
-                  <span>Max Positions: {{ tpl.maxPositions }}</span>
-                  <span>Max Drawdown: {{ tpl.maxDrawdown }}%</span>
-                  <span>Conditions: {{ tpl.definition.entryConditions.length }} entry group(s)</span>
                 </div>
               }
             </div>
           </div>
         }
 
-        <!-- Run button -->
+        <!-- Error -->
         @if (error()) {
           <div class="alert alert-error text-sm mb-4">{{ error() }}</div>
         }
+
+        <!-- Progress -->
         @if (running()) {
           <div class="flex items-center gap-3 mb-4">
             <span class="loading loading-spinner loading-md"></span>
             <span class="text-sm">{{ runningLabel() }}</span>
           </div>
         }
-        <button class="btn btn-primary w-full"
-                (click)="runQuickBacktest()"
-                [disabled]="running() || !selectedTemplate() || !symbol.trim()">
-          @if (!selectedTemplate()) {
-            Select a strategy above
-          } @else if (!symbol.trim()) {
-            Enter a symbol
+
+        <!-- Run button -->
+        <button class="btn btn-primary btn-lg w-full"
+                (click)="runSmartBacktest()"
+                [disabled]="running() || !symbol.trim()">
+          @if (!symbol.trim()) {
+            Enter a symbol above
           } @else {
-            Run Backtest on {{ symbol.toUpperCase() }}
+            Analyze & Backtest {{ symbol.trim().toUpperCase() }}
           }
         </button>
       }
 
-      <!-- ===== ADVANCED MODE (original 4-step wizard) ===== -->
+      <!-- ===== ADVANCED MODE ===== -->
       @if (advancedMode()) {
 
-        <!-- Step indicator -->
         <ul class="steps steps-horizontal w-full mb-8 text-xs">
           <li class="step" [class.step-primary]="step() >= 1">Strategy</li>
           <li class="step" [class.step-primary]="step() >= 2">Parameters</li>
@@ -246,13 +235,11 @@ const TEMPLATES: StrategyTemplate[] = [
           <li class="step" [class.step-primary]="step() >= 4">Review & Run</li>
         </ul>
 
-        <!-- Step 1: Strategy Definition -->
         @if (step() === 1) {
           <div class="card bg-base-200">
             <div class="card-body gap-4">
               <h3 class="card-title text-lg">Strategy Definition</h3>
 
-              <!-- Use existing or create new -->
               <div class="form-control">
                 <label class="label"><span class="label-text">Strategy</span></label>
                 <div class="flex gap-2">
@@ -267,10 +254,9 @@ const TEMPLATES: StrategyTemplate[] = [
               </div>
 
               @if (!selectedStrategyId) {
-                <!-- Template quick-fill buttons -->
                 <div class="flex gap-2 items-center">
                   <span class="text-xs text-base-content/60">Quick fill:</span>
-                  @for (tpl of templates; track tpl.id) {
+                  @for (tpl of templateList; track tpl.id) {
                     <button class="btn btn-xs btn-outline" (click)="applyTemplate(tpl.id)">{{ tpl.name }}</button>
                   }
                 </div>
@@ -288,7 +274,6 @@ const TEMPLATES: StrategyTemplate[] = [
                   </div>
                 </div>
 
-                <!-- Entry conditions -->
                 <div class="mt-2">
                   <div class="flex items-center justify-between mb-2">
                     <span class="text-sm font-semibold">Entry Conditions</span>
@@ -321,7 +306,6 @@ const TEMPLATES: StrategyTemplate[] = [
                   }
                 </div>
 
-                <!-- Exit conditions -->
                 <div class="mt-2">
                   <div class="flex items-center justify-between mb-2">
                     <span class="text-sm font-semibold">Exit Conditions</span>
@@ -345,7 +329,6 @@ const TEMPLATES: StrategyTemplate[] = [
                   }
                 </div>
 
-                <!-- Stop Loss / Take Profit -->
                 <div class="grid grid-cols-2 gap-4 mt-2">
                   <div>
                     <span class="text-sm font-semibold">Stop Loss</span>
@@ -377,12 +360,10 @@ const TEMPLATES: StrategyTemplate[] = [
           </div>
         }
 
-        <!-- Step 2: Symbol & Date Range + Optimization Params -->
         @if (step() === 2) {
           <div class="card bg-base-200">
             <div class="card-body gap-4">
               <h3 class="card-title text-lg">Backtest Parameters</h3>
-
               <div class="grid grid-cols-3 gap-3">
                 <div class="form-control">
                   <label class="label"><span class="label-text text-xs">Symbol</span></label>
@@ -397,42 +378,26 @@ const TEMPLATES: StrategyTemplate[] = [
                   <input type="date" class="input input-bordered input-sm" [(ngModel)]="endDate" />
                 </div>
               </div>
-
-              <!-- Optimization parameter ranges -->
               <div class="divider text-xs">Optimization Ranges (for Walk-Forward)</div>
               <div class="flex items-center justify-between mb-1">
                 <span class="text-sm font-semibold">Parameter Ranges</span>
                 <button class="btn btn-xs btn-outline" (click)="addParamRange()">+ Add</button>
               </div>
-
               @for (p of paramRanges; track $index) {
                 <div class="flex gap-2 items-end mb-2">
                   <input class="input input-bordered input-xs w-32" [(ngModel)]="p.name" placeholder="Param name" />
-                  <div class="flex flex-col">
-                    <span class="text-[10px] text-base-content/40">Min</span>
-                    <input type="number" class="input input-bordered input-xs w-20" [(ngModel)]="p.min" />
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-[10px] text-base-content/40">Max</span>
-                    <input type="number" class="input input-bordered input-xs w-20" [(ngModel)]="p.max" />
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-[10px] text-base-content/40">Step</span>
-                    <input type="number" class="input input-bordered input-xs w-20" [(ngModel)]="p.step" />
-                  </div>
+                  <div class="flex flex-col"><span class="text-[10px] text-base-content/40">Min</span><input type="number" class="input input-bordered input-xs w-20" [(ngModel)]="p.min" /></div>
+                  <div class="flex flex-col"><span class="text-[10px] text-base-content/40">Max</span><input type="number" class="input input-bordered input-xs w-20" [(ngModel)]="p.max" /></div>
+                  <div class="flex flex-col"><span class="text-[10px] text-base-content/40">Step</span><input type="number" class="input input-bordered input-xs w-20" [(ngModel)]="p.step" /></div>
                   <button class="btn btn-xs btn-ghost text-error" (click)="paramRanges.splice($index, 1)">x</button>
                 </div>
               }
-
               @if (paramRanges.length > 0) {
                 <div class="text-xs text-base-content/40">
                   Total combinations: {{ totalCombinations() | number }}
-                  @if (totalCombinations() > 10000) {
-                    <span class="text-warning ml-2">Large search space — may be slow</span>
-                  }
+                  @if (totalCombinations() > 10000) { <span class="text-warning ml-2">Large search space</span> }
                 </div>
               }
-
               <div class="card-actions justify-between mt-4">
                 <button class="btn btn-ghost btn-sm" (click)="step.set(1)">Back</button>
                 <button class="btn btn-primary btn-sm" (click)="step.set(3)">Next: Risk Settings</button>
@@ -441,39 +406,18 @@ const TEMPLATES: StrategyTemplate[] = [
           </div>
         }
 
-        <!-- Step 3: Capital Preservation / Risk Settings -->
         @if (step() === 3) {
           <div class="card bg-base-200">
             <div class="card-body gap-4">
               <h3 class="card-title text-lg">Risk & Position Sizing</h3>
-
               <div class="grid grid-cols-2 gap-4">
-                <div class="form-control">
-                  <label class="label"><span class="label-text text-xs">Risk per Trade (%)</span></label>
-                  <input type="number" class="input input-bordered input-sm" [(ngModel)]="riskPercent" step="0.5" min="0.1" max="10" />
-                </div>
-                <div class="form-control">
-                  <label class="label"><span class="label-text text-xs">Max Open Positions</span></label>
-                  <input type="number" class="input input-bordered input-sm" [(ngModel)]="maxPositions" min="1" max="20" />
-                </div>
-                <div class="form-control">
-                  <label class="label"><span class="label-text text-xs">Max Portfolio Heat (%)</span></label>
-                  <input type="number" class="input input-bordered input-sm" [(ngModel)]="maxPortfolioHeat" step="0.5" />
-                </div>
-                <div class="form-control">
-                  <label class="label"><span class="label-text text-xs">Max Drawdown Circuit Breaker (%)</span></label>
-                  <input type="number" class="input input-bordered input-sm" [(ngModel)]="maxDrawdown" step="1" />
-                </div>
-                <div class="form-control">
-                  <label class="label"><span class="label-text text-xs">Drawdown Recovery (%)</span></label>
-                  <input type="number" class="input input-bordered input-sm" [(ngModel)]="drawdownRecovery" step="1" />
-                </div>
-                <div class="form-control">
-                  <label class="label"><span class="label-text text-xs">Initial Capital ($)</span></label>
-                  <input type="number" class="input input-bordered input-sm" [(ngModel)]="initialCapital" step="1000" />
-                </div>
+                <div class="form-control"><label class="label"><span class="label-text text-xs">Risk per Trade (%)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="riskPercent" step="0.5" min="0.1" max="10" /></div>
+                <div class="form-control"><label class="label"><span class="label-text text-xs">Max Open Positions</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="maxPositions" min="1" max="20" /></div>
+                <div class="form-control"><label class="label"><span class="label-text text-xs">Max Portfolio Heat (%)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="maxPortfolioHeat" step="0.5" /></div>
+                <div class="form-control"><label class="label"><span class="label-text text-xs">Max Drawdown (%)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="maxDrawdown" step="1" /></div>
+                <div class="form-control"><label class="label"><span class="label-text text-xs">Drawdown Recovery (%)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="drawdownRecovery" step="1" /></div>
+                <div class="form-control"><label class="label"><span class="label-text text-xs">Initial Capital ($)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="initialCapital" step="1000" /></div>
               </div>
-
               <div class="card-actions justify-between mt-4">
                 <button class="btn btn-ghost btn-sm" (click)="step.set(2)">Back</button>
                 <button class="btn btn-primary btn-sm" (click)="step.set(4)">Next: Review</button>
@@ -482,12 +426,10 @@ const TEMPLATES: StrategyTemplate[] = [
           </div>
         }
 
-        <!-- Step 4: Review & Run -->
         @if (step() === 4) {
           <div class="card bg-base-200">
             <div class="card-body gap-4">
               <h3 class="card-title text-lg">Review & Run</h3>
-
               <div class="overflow-x-auto">
                 <table class="table table-xs">
                   <tbody>
@@ -496,42 +438,21 @@ const TEMPLATES: StrategyTemplate[] = [
                     <tr><td class="text-base-content/60">Date Range</td><td class="font-mono">{{ startDate }} to {{ endDate }}</td></tr>
                     <tr><td class="text-base-content/60">Entry Conditions</td><td>{{ selectedStrategyId ? '(from strategy)' : entryConditions.length + ' condition(s)' }}</td></tr>
                     <tr><td class="text-base-content/60">Stop Loss</td><td class="font-mono">{{ stopLossType }} x{{ stopLossMultiplier }}</td></tr>
-                    <tr><td class="text-base-content/60">Take Profit</td><td class="font-mono">{{ takeProfitType }} x{{ takeProfitMultiplier }}</td></tr>
                     <tr><td class="text-base-content/60">Risk / Trade</td><td class="font-mono">{{ riskPercent }}%</td></tr>
-                    <tr><td class="text-base-content/60">Max Positions</td><td class="font-mono">{{ maxPositions }}</td></tr>
                     <tr><td class="text-base-content/60">Max Drawdown</td><td class="font-mono">{{ maxDrawdown }}%</td></tr>
-                    @if (paramRanges.length > 0) {
-                      <tr><td class="text-base-content/60">Optimization</td><td class="font-mono">{{ paramRanges.length }} params, {{ totalCombinations() | number }} combos</td></tr>
-                    }
                   </tbody>
                 </table>
               </div>
-
               @if (!isNewStrategyValid()) {
                 <div class="alert alert-warning text-sm">Add at least one entry condition on Step 1 before running.</div>
               }
-              @if (error()) {
-                <div class="alert alert-error text-sm">{{ error() }}</div>
-              }
+              @if (error()) { <div class="alert alert-error text-sm">{{ error() }}</div> }
               @if (running()) {
-                <div class="flex items-center gap-3">
-                  <span class="loading loading-spinner loading-md"></span>
-                  <span class="text-sm">{{ runningLabel() }}</span>
-                </div>
+                <div class="flex items-center gap-3"><span class="loading loading-spinner loading-md"></span><span class="text-sm">{{ runningLabel() }}</span></div>
               }
-
               <div class="card-actions justify-between mt-4">
                 <button class="btn btn-ghost btn-sm" (click)="step.set(3)" [disabled]="running()">Back</button>
-                <div class="flex gap-2">
-                  <button class="btn btn-primary btn-sm" (click)="runBacktest()" [disabled]="running() || !isNewStrategyValid()">
-                    Run Backtest
-                  </button>
-                  @if (paramRanges.length > 0) {
-                    <button class="btn btn-secondary btn-sm" (click)="runWalkForward()" [disabled]="running() || !isNewStrategyValid()">
-                      Run Walk-Forward
-                    </button>
-                  }
-                </div>
+                <button class="btn btn-primary btn-sm" (click)="runBacktest()" [disabled]="running() || !isNewStrategyValid()">Run Backtest</button>
               </div>
             </div>
           </div>
@@ -547,9 +468,8 @@ export class BacktestConfigComponent {
   // Mode toggle
   advancedMode = signal(false);
 
-  // Quick-start template selection
-  templates = TEMPLATES;
-  selectedTemplate = signal('');
+  // Smart mode state
+  detectedRegime = signal<any>(null);
 
   // Step control (advanced mode)
   step = signal(1);
@@ -589,64 +509,48 @@ export class BacktestConfigComponent {
   runningLabel = signal('');
   error = signal('');
 
-  // Constants for template
+  // Constants
   indicators = INDICATORS;
   comparisons = COMPARISONS;
   timeframes = TIMEFRAMES;
+  templateList = Object.values(TEMPLATES);
 
   constructor() {
     this.loadStrategies();
   }
 
-  loadStrategies(): void {
-    this.api.getStrategies({ page: 1, pageSize: 100 }).subscribe({
-      next: (res: any) => this.strategies.set(res.items ?? []),
-      error: () => this.strategies.set([]),
-    });
+  getTemplate(id: string): StrategyTemplate | undefined {
+    return TEMPLATES[id];
   }
 
-  selectTemplate(id: string): void {
-    this.selectedTemplate.set(this.selectedTemplate() === id ? '' : id);
-  }
+  // ===== SMART MODE =====
 
-  getSelectedTemplate(): StrategyTemplate | undefined {
-    return this.templates.find(t => t.id === this.selectedTemplate());
-  }
-
-  /** Apply a template to the advanced-mode form fields */
-  applyTemplate(templateId: string): void {
-    const tpl = this.templates.find(t => t.id === templateId);
-    if (!tpl) return;
-
-    this.strategyName = `${tpl.name} Strategy`;
-    this.stopLossType = tpl.stopLoss.type;
-    this.stopLossMultiplier = tpl.stopLoss.multiplier;
-    this.takeProfitType = tpl.takeProfit.type;
-    this.takeProfitMultiplier = tpl.takeProfit.multiplier;
-    this.riskPercent = tpl.riskPercent;
-    this.maxPositions = tpl.maxPositions;
-    this.maxDrawdown = tpl.maxDrawdown;
-
-    // Flatten template definition conditions into ConditionForm arrays
-    this.entryConditions = this.flattenConditions(tpl.definition.entryConditions);
-    this.exitConditions = this.flattenConditions(tpl.definition.exitConditions);
-  }
-
-  /** Quick-start: create strategy from template and immediately run backtest */
-  async runQuickBacktest(): Promise<void> {
-    const tpl = this.getSelectedTemplate();
-    if (!tpl || !this.symbol.trim()) return;
+  async runSmartBacktest(): Promise<void> {
+    const sym = this.symbol.trim().toUpperCase();
+    if (!sym) return;
 
     this.running.set(true);
-    this.runningLabel.set(`Creating ${tpl.name} strategy and running backtest...`);
     this.error.set('');
+    this.detectedRegime.set(null);
+    this.runningLabel.set(`Analyzing ${sym} market regime...`);
 
     try {
-      const strategyId = await this.createTemplateStrategy(tpl);
+      // Step 1: Detect regime
+      const regime = await this.detectRegime(sym);
+      this.detectedRegime.set(regime);
 
+      // Step 2: Get the matching template
+      const tpl = TEMPLATES[regime.recommendedTemplate] ?? TEMPLATES['Momentum'];
+      this.runningLabel.set(`Creating ${tpl.name} strategy for ${sym}...`);
+
+      // Step 3: Create the strategy
+      const strategyId = await this.createTemplateStrategy(tpl, sym);
+
+      // Step 4: Run the backtest
+      this.runningLabel.set(`Running ${tpl.name} backtest on ${sym}...`);
       this.api.runBacktest({
         strategyId,
-        symbol: this.symbol.trim().toUpperCase(),
+        symbol: sym,
         startDate: this.startDate,
         endDate: this.endDate,
       }).subscribe({
@@ -661,11 +565,24 @@ export class BacktestConfigComponent {
       });
     } catch (e: any) {
       this.running.set(false);
-      this.error.set(e.error?.detail ?? e.message ?? 'Failed to create strategy');
+      this.error.set(e.error?.detail ?? e.message ?? 'Analysis failed');
     }
   }
 
-  private createTemplateStrategy(tpl: StrategyTemplate): Promise<string> {
+  private detectRegime(symbol: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.api.detectStockRegime(symbol).subscribe({
+        next: (res: any) => {
+          // Normalize confidence to percentage
+          if (res.confidence <= 1) res.confidence = res.confidence * 100;
+          resolve(res);
+        },
+        error: (err: any) => reject(err),
+      });
+    });
+  }
+
+  private createTemplateStrategy(tpl: StrategyTemplate, sym: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const definition = {
         ...tpl.definition,
@@ -682,8 +599,8 @@ export class BacktestConfigComponent {
       };
 
       this.api.createStrategyV2({
-        name: `${tpl.name} — ${this.symbol.trim().toUpperCase()} ${new Date().toISOString().slice(0, 10)}`,
-        description: tpl.description,
+        name: `${tpl.name} — ${sym} ${new Date().toISOString().slice(0, 10)}`,
+        description: `Auto-selected ${tpl.name} strategy for ${sym}`,
         definition,
       }).subscribe({
         next: (res: any) => resolve(res.id),
@@ -692,17 +609,32 @@ export class BacktestConfigComponent {
     });
   }
 
+  // ===== ADVANCED MODE =====
+
+  loadStrategies(): void {
+    this.api.getStrategies({ page: 1, pageSize: 100 }).subscribe({
+      next: (res: any) => this.strategies.set(res.items ?? []),
+      error: () => this.strategies.set([]),
+    });
+  }
+
+  applyTemplate(templateId: string): void {
+    const tpl = TEMPLATES[templateId];
+    if (!tpl) return;
+    this.strategyName = `${tpl.name} Strategy`;
+    this.stopLossType = tpl.stopLoss.type;
+    this.stopLossMultiplier = tpl.stopLoss.multiplier;
+    this.takeProfitType = tpl.takeProfit.type;
+    this.takeProfitMultiplier = tpl.takeProfit.multiplier;
+    this.riskPercent = tpl.riskPercent;
+    this.maxPositions = tpl.maxPositions;
+    this.maxDrawdown = tpl.maxDrawdown;
+    this.entryConditions = this.flattenConditions(tpl.definition.entryConditions);
+    this.exitConditions = this.flattenConditions(tpl.definition.exitConditions);
+  }
+
   addCondition(type: 'entry' | 'exit'): void {
-    const cond: ConditionForm = {
-      indicator: 'RSI',
-      comparison: 'LessThan',
-      value: 30,
-      valueHigh: null,
-      period: 14,
-      referenceIndicator: '',
-      referencePeriod: null,
-      timeframe: 'Daily',
-    };
+    const cond: ConditionForm = { indicator: 'RSI', comparison: 'LessThan', value: 30, valueHigh: null, period: 14, referenceIndicator: '', referencePeriod: null, timeframe: 'Daily' };
     if (type === 'entry') this.entryConditions.push(cond);
     else this.exitConditions.push(cond);
   }
@@ -712,123 +644,49 @@ export class BacktestConfigComponent {
     else this.exitConditions.splice(index, 1);
   }
 
-  addParamRange(): void {
-    this.paramRanges.push({ name: '', min: 10, max: 50, step: 10 });
-  }
+  addParamRange(): void { this.paramRanges.push({ name: '', min: 10, max: 50, step: 10 }); }
 
   totalCombinations(): number {
     if (this.paramRanges.length === 0) return 0;
-    return this.paramRanges.reduce((acc, p) => {
-      const count = p.step > 0 ? Math.floor((p.max - p.min) / p.step) + 1 : 1;
-      return acc * Math.max(count, 1);
-    }, 1);
+    return this.paramRanges.reduce((acc, p) => { const c = p.step > 0 ? Math.floor((p.max - p.min) / p.step) + 1 : 1; return acc * Math.max(c, 1); }, 1);
+  }
+
+  isNewStrategyValid(): boolean {
+    if (this.selectedStrategyId) return true;
+    return this.entryConditions.length > 0;
   }
 
   async runBacktest(): Promise<void> {
     this.running.set(true);
     this.runningLabel.set('Running backtest...');
     this.error.set('');
-
     try {
       const strategyId = await this.ensureStrategy();
       if (!strategyId) return;
-
-      this.api.runBacktest({
-        strategyId,
-        symbol: this.symbol.toUpperCase(),
-        startDate: this.startDate,
-        endDate: this.endDate,
-      }).subscribe({
-        next: (result: any) => {
-          this.running.set(false);
-          this.router.navigate(['/backtests', result.id]);
-        },
-        error: (err: any) => {
-          this.running.set(false);
-          this.error.set(err.error?.detail ?? err.message ?? 'Backtest failed');
-        },
+      this.api.runBacktest({ strategyId, symbol: this.symbol.toUpperCase(), startDate: this.startDate, endDate: this.endDate }).subscribe({
+        next: (result: any) => { this.running.set(false); this.router.navigate(['/backtests', result.id]); },
+        error: (err: any) => { this.running.set(false); this.error.set(err.error?.detail ?? err.message ?? 'Backtest failed'); },
       });
-    } catch (e: any) {
-      this.running.set(false);
-      this.error.set(e.message ?? 'Failed to create strategy');
-    }
+    } catch (e: any) { this.running.set(false); this.error.set(e.message ?? 'Failed to create strategy'); }
   }
 
-  async runWalkForward(): Promise<void> {
-    this.running.set(true);
-    this.runningLabel.set('Running walk-forward analysis...');
-    this.error.set('');
-
-    try {
-      const strategyId = await this.ensureStrategy();
-      if (!strategyId) return;
-
-      this.api.runBacktest({
-        strategyId,
-        symbol: this.symbol.toUpperCase(),
-        startDate: this.startDate,
-        endDate: this.endDate,
-      }).subscribe({
-        next: (result: any) => {
-          this.running.set(false);
-          this.router.navigate(['/backtests', result.id]);
-        },
-        error: (err: any) => {
-          this.running.set(false);
-          this.error.set(err.error?.detail ?? err.message ?? 'Walk-forward failed');
-        },
-      });
-    } catch (e: any) {
-      this.running.set(false);
-      this.error.set(e.message ?? 'Failed');
-    }
-  }
-
-  /** Checks whether the new-strategy form is valid (skipped when using an existing strategy). */
-  isNewStrategyValid(): boolean {
-    if (this.selectedStrategyId) return true;
-    return this.entryConditions.length > 0;
-  }
-
-  /** Create strategy if new, or return selected ID */
   private ensureStrategy(): Promise<string> {
     return new Promise((resolve, reject) => {
-      if (this.selectedStrategyId) {
-        resolve(this.selectedStrategyId);
-        return;
-      }
-
-      if (this.entryConditions.length === 0) {
-        reject(new Error('Add at least one entry condition before running a backtest.'));
-        return;
-      }
-
+      if (this.selectedStrategyId) { resolve(this.selectedStrategyId); return; }
+      if (this.entryConditions.length === 0) { reject(new Error('Add at least one entry condition.')); return; }
       const definition = {
         entryConditions: this.buildConditionGroups(this.entryConditions),
         exitConditions: this.buildConditionGroups(this.exitConditions),
         stopLoss: { type: this.stopLossType, multiplier: this.stopLossMultiplier },
         takeProfit: { type: this.takeProfitType, multiplier: this.takeProfitMultiplier },
-        positionSizing: {
-          riskPercent: this.riskPercent,
-          maxPositions: this.maxPositions,
-          maxPortfolioHeat: this.maxPortfolioHeat,
-          maxDrawdownPercent: this.maxDrawdown,
-          drawdownRecoveryPercent: this.drawdownRecovery,
-        },
+        positionSizing: { riskPercent: this.riskPercent, maxPositions: this.maxPositions, maxPortfolioHeat: this.maxPortfolioHeat, maxDrawdownPercent: this.maxDrawdown, drawdownRecoveryPercent: this.drawdownRecovery },
         filters: {},
       };
-
       this.api.createStrategyV2({
         name: this.strategyName || `Strategy ${new Date().toISOString().slice(0, 10)}`,
         description: this.strategyDescription || null,
         definition,
-      }).subscribe({
-        next: (res: any) => {
-          this.selectedStrategyId = res.id;
-          resolve(res.id);
-        },
-        error: (err: any) => reject(err),
-      });
+      }).subscribe({ next: (res: any) => { this.selectedStrategyId = res.id; resolve(res.id); }, error: (err: any) => reject(err) });
     });
   }
 
@@ -836,41 +694,20 @@ export class BacktestConfigComponent {
     const groups = new Map<string, any[]>();
     for (const c of conditions) {
       if (!groups.has(c.timeframe)) groups.set(c.timeframe, []);
-      const cond: any = {
-        indicator: c.indicator,
-        comparison: c.comparison,
-        value: c.value,
-      };
+      const cond: any = { indicator: c.indicator, comparison: c.comparison, value: c.value };
       if (c.period) cond.period = c.period;
       if (c.valueHigh) cond.valueHigh = c.valueHigh;
-      if (c.referenceIndicator) {
-        cond.referenceIndicator = c.referenceIndicator;
-        if (c.referencePeriod) cond.referencePeriod = c.referencePeriod;
-      }
+      if (c.referenceIndicator) { cond.referenceIndicator = c.referenceIndicator; if (c.referencePeriod) cond.referencePeriod = c.referencePeriod; }
       groups.get(c.timeframe)!.push(cond);
     }
-
-    return Array.from(groups.entries()).map(([timeframe, conds]) => ({
-      timeframe,
-      conditions: conds,
-    }));
+    return Array.from(groups.entries()).map(([timeframe, conds]) => ({ timeframe, conditions: conds }));
   }
 
-  /** Convert template definition condition groups into flat ConditionForm arrays */
   private flattenConditions(groups: any[]): ConditionForm[] {
     const result: ConditionForm[] = [];
     for (const group of groups) {
       for (const c of group.conditions) {
-        result.push({
-          indicator: c.indicator,
-          comparison: c.comparison,
-          value: c.value ?? 0,
-          valueHigh: null,
-          period: c.period ?? null,
-          referenceIndicator: c.referenceIndicator ?? '',
-          referencePeriod: c.referencePeriod ?? null,
-          timeframe: group.timeframe,
-        });
+        result.push({ indicator: c.indicator, comparison: c.comparison, value: c.value ?? 0, valueHigh: null, period: c.period ?? null, referenceIndicator: c.referenceIndicator ?? '', referencePeriod: c.referencePeriod ?? null, timeframe: group.timeframe });
       }
     }
     return result;
