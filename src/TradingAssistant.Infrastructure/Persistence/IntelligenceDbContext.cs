@@ -26,6 +26,7 @@ public class IntelligenceDbContext : DbContext
     public DbSet<MlModel> MlModels => Set<MlModel>();
     public DbSet<TradeReview> TradeReviews => Set<TradeReview>();
     public DbSet<StrategyDecayAlert> StrategyDecayAlerts => Set<StrategyDecayAlert>();
+    public DbSet<MistakePatternReport> MistakePatternReports => Set<MistakePatternReport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -332,6 +333,19 @@ public class IntelligenceDbContext : DbContext
             entity.HasIndex(e => e.StrategyId);
             entity.HasIndex(e => new { e.AlertType, e.IsResolved });
             entity.HasIndex(e => e.MarketCode);
+        });
+
+        modelBuilder.Entity<MistakePatternReport>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MarketCode).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.MostCommonMistake).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.MistakeBreakdownJson).HasMaxLength(2_000);
+            entity.Property(e => e.RegimeBreakdownJson).HasMaxLength(4_000);
+            entity.Property(e => e.RecommendationsJson).HasMaxLength(4_000);
+            entity.Property(e => e.ClaudeAnalysis).HasMaxLength(4_000);
+            entity.HasIndex(e => e.MarketCode);
+            entity.HasIndex(e => e.AnalyzedAt);
         });
     }
 }

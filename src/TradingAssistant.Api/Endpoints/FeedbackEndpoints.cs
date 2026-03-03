@@ -55,6 +55,12 @@ public class FeedbackEndpoints : IEndpoint
 
         group.MapPost("/decay-alerts/{alertId:guid}/resolve", ResolveDecayAlert)
             .WithSummary("Resolve (acknowledge) a decay alert");
+
+        group.MapGet("/mistake-summary/{marketCode}", GetMistakeSummary)
+            .WithSummary("Get mistake breakdown and recommendations for a market");
+
+        group.MapPost("/generate-pattern-report", GeneratePatternReport)
+            .WithSummary("Generate a mistake pattern report with Claude analysis");
     }
 
     private static async Task<IReadOnlyList<PipelineRunStatusDto>> GetPipelineStatus(
@@ -173,5 +179,22 @@ public class FeedbackEndpoints : IEndpoint
         return result is null
             ? Results.NotFound($"Decay alert '{alertId}' not found.")
             : Results.Ok(result);
+    }
+
+    private static async Task<MistakeSummaryDto> GetMistakeSummary(
+        [FromRoute] string marketCode,
+        IntelligenceDbContext db)
+    {
+        return await GetMistakeSummaryHandler.HandleAsync(
+            new GetMistakeSummaryQuery(marketCode), db);
+    }
+
+    private static async Task<MistakePatternReportDto> GeneratePatternReport(
+        [FromBody] GeneratePatternReportCommand command,
+        IClaudeClient claude,
+        IntelligenceDbContext db,
+        ILogger<GeneratePatternReportHandler> logger)
+    {
+        return await GeneratePatternReportHandler.HandleAsync(command, claude, db, logger);
     }
 }
