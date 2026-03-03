@@ -19,7 +19,8 @@ public class StockUniverseEndpoints : IEndpoint
             .WithSummary("Create a new stock universe");
 
         group.MapGet("/", GetUniverses)
-            .WithSummary("List all stock universes");
+            .WithSummary("List all stock universes")
+            .AllowAnonymous();
 
         group.MapPost("/{universeId}/symbols", AddSymbols)
             .WithSummary("Add symbols to a universe");

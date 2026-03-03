@@ -123,8 +123,8 @@ export class ChartsComponent {
     this.activeSymbol.set(symbol);
 
     const now = new Date();
-    const twoYearsAgo = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate());
-    const startDate = twoYearsAgo.toISOString();
+    const fiveYearsAgo = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
+    const startDate = fiveYearsAgo.toISOString();
     const endDate = now.toISOString();
 
     // Load all three timeframes in parallel
@@ -169,7 +169,7 @@ export class ChartsComponent {
         if (candles.length === 0 && interval === 'Daily' && !retried) {
           // No data — auto-fetch from Yahoo Finance and retry
           this.error.set(`Fetching ${symbol} data from Yahoo Finance...`);
-          this.api.ingestMarketData(symbol, 3).subscribe({
+          this.api.ingestMarketData(symbol, 5).subscribe({
             next: () => {
               this.error.set('');
               this.loadTimeframe(symbol, startDate, endDate, interval, onSuccess, true);
@@ -187,7 +187,7 @@ export class ChartsComponent {
         if (interval === 'Daily' && !retried) {
           // API error — try fetching data first
           this.error.set(`Fetching ${symbol} data from Yahoo Finance...`);
-          this.api.ingestMarketData(symbol, 3).subscribe({
+          this.api.ingestMarketData(symbol, 5).subscribe({
             next: () => {
               this.error.set('');
               this.loadTimeframe(symbol, startDate, endDate, interval, onSuccess, true);

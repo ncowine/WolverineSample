@@ -25,6 +25,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 export class SidebarComponent {
   navItems = [
     { route: '/', icon: '\u{1F4CA}', label: 'Dashboard' },
+    { route: '/markets', icon: '\u{1F30D}', label: 'Markets' },
     { route: '/charts', icon: '\u{1F4C8}', label: 'Charts' },
     { route: '/portfolio', icon: '\u{1F4BC}', label: 'Portfolio' },
     { route: '/orders', icon: '\u{1F4DD}', label: 'Orders' },

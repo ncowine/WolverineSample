@@ -66,6 +66,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/screener/screener.routes').then((m) => m.screenerRoutes),
       },
+      {
+        path: 'markets',
+        loadChildren: () =>
+          import('./features/markets/markets.routes').then((m) => m.marketsRoutes),
+      },
     ],
   },
 

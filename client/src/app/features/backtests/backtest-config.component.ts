@@ -492,7 +492,7 @@ export class BacktestConfigComponent {
 
   // Backtest params
   symbol = 'AAPL';
-  startDate = new Date(Date.now() - 2 * 365.25 * 86400000).toISOString().slice(0, 10); // 2 years ago
+  startDate = new Date(Date.now() - 5 * 365.25 * 86400000).toISOString().slice(0, 10); // 5 years ago
   endDate = new Date().toISOString().slice(0, 10); // today
 
   // Optimization param ranges
@@ -595,7 +595,7 @@ export class BacktestConfigComponent {
 
   private ingestData(symbol: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.api.ingestMarketData(symbol, 3).subscribe({
+      this.api.ingestMarketData(symbol, 5).subscribe({
         next: () => resolve(),
         error: (err: any) => reject(err),
       });

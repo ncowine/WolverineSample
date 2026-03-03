@@ -22,7 +22,7 @@ export class ApiService {
     return this.http.post<any>('/api/market-data/fetch', { symbol, from, to });
   }
 
-  ingestMarketData(symbol: string, yearsBack = 3) {
+  ingestMarketData(symbol: string, yearsBack = 5) {
     return this.http.post<any>('/api/market-data/ingest', { symbol, yearsBack });
   }
 
@@ -161,6 +161,23 @@ export class ApiService {
     return this.http.get<any>('/api/universes/benchmark', {
       params: this.toHttpParams({ startDate, endDate }),
     });
+  }
+
+  // --- Stock Universes ---
+  getUniverses() {
+    return this.http.get<any>('/api/universes');
+  }
+
+  createUniverse(data: any) {
+    return this.http.post<any>('/api/universes', data);
+  }
+
+  addUniverseSymbols(universeId: string, symbols: string[]) {
+    return this.http.post<any>(`/api/universes/${universeId}/symbols`, { symbols });
+  }
+
+  removeUniverseSymbols(universeId: string, symbols: string[]) {
+    return this.http.delete<any>(`/api/universes/${universeId}/symbols`, { body: { symbols } });
   }
 
   // --- Screener ---

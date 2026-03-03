@@ -29,7 +29,13 @@ public static class DatabaseInitializer
         await backtestDb.Database.MigrateAsync();
         await intelligenceDb.Database.MigrateAsync();
 
-        // Seed data if not already present
+        // Seed stock universes (independent of stock data)
+        await SeedUniversesAsync(marketDb);
+
+        // Seed market profiles and cost profiles
+        await SeedMarketProfilesAsync(intelligenceDb);
+
+        // Seed sample stocks + user data only on first run
         if (await marketDb.Stocks.AnyAsync())
             return;
 
@@ -88,27 +94,6 @@ public static class DatabaseInitializer
 
         await marketDb.SaveChangesAsync();
 
-        // Seed default stock universe: S&P 500 Top 50
-        if (!await marketDb.StockUniverses.AnyAsync())
-        {
-            var sp500Top50 = new StockUniverse
-            {
-                Name = "S&P 500 Top 50",
-                Description = "Top 50 most liquid S&P 500 components",
-                IncludesBenchmark = true
-            };
-            sp500Top50.SetSymbolList(new[]
-            {
-                "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK.B", "JPM", "V",
-                "UNH", "XOM", "JNJ", "WMT", "MA", "PG", "AVGO", "HD", "CVX", "MRK",
-                "ABBV", "PEP", "KO", "COST", "ADBE", "CRM", "TMO", "CSCO", "ACN", "MCD",
-                "ABT", "NKE", "DHR", "NFLX", "AMD", "LIN", "TXN", "QCOM", "PM", "INTC",
-                "CMCSA", "UNP", "ORCL", "LOW", "UPS", "MS", "GS", "BLK", "CAT", "BA"
-            });
-            marketDb.StockUniverses.Add(sp500Top50);
-            await marketDb.SaveChangesAsync();
-        }
-
         // Create a system/dev user for the default account
         var devUser = new User
         {
@@ -139,57 +124,148 @@ public static class DatabaseInitializer
         tradingDb.Portfolios.Add(portfolio);
 
         await tradingDb.SaveChangesAsync();
+    }
 
-        // Seed default market profiles and cost profiles
-        if (!await intelligenceDb.MarketProfiles.AnyAsync())
+    private static async Task SeedUniversesAsync(MarketDataDbContext db)
+    {
+        var existingNames = await db.StockUniverses.Select(u => u.Name).ToListAsync();
+        var toAdd = new List<StockUniverse>();
+
+        var sp500 = new StockUniverse
         {
-            intelligenceDb.MarketProfiles.AddRange(
-                new MarketProfile
-                {
-                    MarketCode = "US_SP500",
-                    Exchange = "NYSE/NASDAQ",
-                    Currency = "USD",
-                    Timezone = "America/New_York",
-                    VixSymbol = "^VIX",
-                    DataSource = "yahoo",
-                    ConfigJson = """{"tradingHours":{"open":"09:30","close":"16:00"},"regimeThresholds":{"highVol":30,"bullBreadth":0.60,"bearBreadth":0.40}}"""
-                },
-                new MarketProfile
-                {
-                    MarketCode = "IN_NIFTY50",
-                    Exchange = "NSE",
-                    Currency = "INR",
-                    Timezone = "Asia/Kolkata",
-                    VixSymbol = "^INDIAVIX",
-                    DataSource = "yahoo",
-                    ConfigJson = """{"tradingHours":{"open":"09:15","close":"15:30"},"regimeThresholds":{"highVol":25,"bullBreadth":0.55,"bearBreadth":0.35}}"""
-                }
-            );
+            Name = "S&P 500",
+            Description = "Top 50 S&P 500 components by market cap",
+            IncludesBenchmark = true
+        };
+        sp500.SetSymbolList(new[]
+        {
+            "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK.B", "JPM", "V",
+            "UNH", "XOM", "JNJ", "WMT", "MA", "PG", "AVGO", "HD", "CVX", "MRK",
+            "ABBV", "PEP", "KO", "COST", "ADBE", "CRM", "TMO", "CSCO", "ACN", "MCD",
+            "ABT", "NKE", "DHR", "NFLX", "AMD", "LIN", "TXN", "QCOM", "PM", "INTC",
+            "CMCSA", "UNP", "ORCL", "LOW", "UPS", "MS", "GS", "BLK", "CAT", "BA"
+        });
 
-            intelligenceDb.CostProfiles.AddRange(
-                new CostProfile
-                {
-                    MarketCode = "US_SP500",
-                    Name = "US Equities (Default)",
-                    CommissionPerShare = 0.005m,
-                    CommissionPercent = 0m,
-                    ExchangeFeePercent = 0m,
-                    TaxPercent = 0m,
-                    SpreadEstimatePercent = 0.10m
-                },
-                new CostProfile
-                {
-                    MarketCode = "IN_NIFTY50",
-                    Name = "India Equities (Default)",
-                    CommissionPerShare = 0m,
-                    CommissionPercent = 0.03m,
-                    ExchangeFeePercent = 0.00345m,
-                    TaxPercent = 0.025m,
-                    SpreadEstimatePercent = 0.05m
-                }
-            );
+        var nasdaq100 = new StockUniverse
+        {
+            Name = "NASDAQ 100",
+            Description = "Top NASDAQ 100 technology and growth stocks",
+            IncludesBenchmark = false
+        };
+        nasdaq100.SetSymbolList(new[]
+        {
+            "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "NVDA", "META", "TSLA", "AVGO", "COST",
+            "ADBE", "NFLX", "AMD", "QCOM", "INTC", "CSCO", "TXN", "AMGN", "INTU", "AMAT",
+            "ISRG", "BKNG", "LRCX", "ADI", "MU", "REGN", "VRTX", "MDLZ", "ADP", "PANW",
+            "KLAC", "SNPS", "CDNS", "MELI", "CRWD", "MAR", "ABNB", "ORLY", "FTNT", "MRVL",
+            "DASH", "WDAY", "CTAS", "CEG", "PYPL", "ROP", "MNST", "TTD", "DXCM", "IDXX"
+        });
 
-            await intelligenceDb.SaveChangesAsync();
+        var dowJones = new StockUniverse
+        {
+            Name = "Dow Jones 30",
+            Description = "All 30 Dow Jones Industrial Average components",
+            IncludesBenchmark = false
+        };
+        dowJones.SetSymbolList(new[]
+        {
+            "AAPL", "MSFT", "AMZN", "NVDA", "V", "UNH", "JNJ", "WMT", "JPM", "PG",
+            "HD", "CVX", "MRK", "KO", "CSCO", "MCD", "DIS", "IBM", "NKE", "BA",
+            "CAT", "GS", "MMM", "AXP", "DOW", "HON", "CRM", "TRV", "AMGN", "VZ"
+        });
+
+        var ftse100 = new StockUniverse
+        {
+            Name = "FTSE 100",
+            Description = "Top FTSE 100 UK stocks (Yahoo Finance tickers)",
+            IncludesBenchmark = false
+        };
+        ftse100.SetSymbolList(new[]
+        {
+            "SHEL.L", "AZN.L", "HSBA.L", "ULVR.L", "BP.L", "GSK.L", "RIO.L", "BATS.L",
+            "DGE.L", "REL.L", "LSEG.L", "NG.L", "VOD.L", "BARC.L", "LLOY.L", "GLEN.L",
+            "AAL.L", "BHP.L", "BA.L", "IMB.L", "PRU.L", "RR.L", "ABF.L", "CRH.L",
+            "ANTO.L", "EXPN.L", "III.L", "SGE.L", "SMIN.L", "WPP.L"
+        });
+
+        var euStoxx50 = new StockUniverse
+        {
+            Name = "Euro Stoxx 50",
+            Description = "Top Euro Stoxx 50 European stocks (Yahoo Finance tickers)",
+            IncludesBenchmark = false
+        };
+        euStoxx50.SetSymbolList(new[]
+        {
+            "ASML.AS", "MC.PA", "SAP.DE", "SIE.DE", "TTE.PA", "SAN.PA", "OR.PA", "AIR.PA",
+            "ALV.DE", "BNP.PA", "DTE.DE", "SU.PA", "CS.PA", "BAS.DE", "ENEL.MI", "ISP.MI",
+            "ABI.BR", "INGA.AS", "MUV2.DE", "PHIA.AS", "KER.PA", "AI.PA", "DG.PA", "EL.PA",
+            "BMW.DE", "ADS.DE", "IBE.MC", "SAN.MC", "BN.PA", "STLAM.MI"
+        });
+
+        foreach (var u in new[] { sp500, nasdaq100, dowJones, ftse100, euStoxx50 })
+        {
+            if (!existingNames.Contains(u.Name))
+                toAdd.Add(u);
         }
+
+        if (toAdd.Count > 0)
+        {
+            db.StockUniverses.AddRange(toAdd);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    private static async Task SeedMarketProfilesAsync(IntelligenceDbContext db)
+    {
+        if (await db.MarketProfiles.AnyAsync())
+            return;
+
+        db.MarketProfiles.AddRange(
+            new MarketProfile
+            {
+                MarketCode = "US_SP500",
+                Exchange = "NYSE/NASDAQ",
+                Currency = "USD",
+                Timezone = "America/New_York",
+                VixSymbol = "^VIX",
+                DataSource = "yahoo",
+                ConfigJson = """{"tradingHours":{"open":"09:30","close":"16:00"},"regimeThresholds":{"highVol":30,"bullBreadth":0.60,"bearBreadth":0.40}}"""
+            },
+            new MarketProfile
+            {
+                MarketCode = "IN_NIFTY50",
+                Exchange = "NSE",
+                Currency = "INR",
+                Timezone = "Asia/Kolkata",
+                VixSymbol = "^INDIAVIX",
+                DataSource = "yahoo",
+                ConfigJson = """{"tradingHours":{"open":"09:15","close":"15:30"},"regimeThresholds":{"highVol":25,"bullBreadth":0.55,"bearBreadth":0.35}}"""
+            }
+        );
+
+        db.CostProfiles.AddRange(
+            new CostProfile
+            {
+                MarketCode = "US_SP500",
+                Name = "US Equities (Default)",
+                CommissionPerShare = 0.005m,
+                CommissionPercent = 0m,
+                ExchangeFeePercent = 0m,
+                TaxPercent = 0m,
+                SpreadEstimatePercent = 0.10m
+            },
+            new CostProfile
+            {
+                MarketCode = "IN_NIFTY50",
+                Name = "India Equities (Default)",
+                CommissionPerShare = 0m,
+                CommissionPercent = 0.03m,
+                ExchangeFeePercent = 0.00345m,
+                TaxPercent = 0.025m,
+                SpreadEstimatePercent = 0.05m
+            }
+        );
+
+        await db.SaveChangesAsync();
     }
 }
