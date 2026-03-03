@@ -162,12 +162,42 @@ export class ChartsComponent {
     endDate: string,
     interval: string,
     onSuccess: (candles: CandleDto[]) => void,
+    retried = false,
   ): void {
     this.api.getStockHistory(symbol, { startDate, endDate, interval }).subscribe({
-      next: (candles: CandleDto[]) => onSuccess(candles),
+      next: (candles: CandleDto[]) => {
+        if (candles.length === 0 && interval === 'Daily' && !retried) {
+          // No data — auto-fetch from Yahoo Finance and retry
+          this.error.set(`Fetching ${symbol} data from Yahoo Finance...`);
+          this.api.ingestMarketData(symbol, 3).subscribe({
+            next: () => {
+              this.error.set('');
+              this.loadTimeframe(symbol, startDate, endDate, interval, onSuccess, true);
+            },
+            error: () => {
+              this.error.set(`No data available for ${symbol}. Check the ticker symbol.`);
+              onSuccess([]);
+            },
+          });
+          return;
+        }
+        onSuccess(candles);
+      },
       error: (err: any) => {
-        if (interval === 'Daily') {
-          this.error.set(`Failed to load ${interval} data for ${symbol}`);
+        if (interval === 'Daily' && !retried) {
+          // API error — try fetching data first
+          this.error.set(`Fetching ${symbol} data from Yahoo Finance...`);
+          this.api.ingestMarketData(symbol, 3).subscribe({
+            next: () => {
+              this.error.set('');
+              this.loadTimeframe(symbol, startDate, endDate, interval, onSuccess, true);
+            },
+            error: () => {
+              this.error.set(`No data available for ${symbol}. Check the ticker symbol.`);
+              onSuccess([]);
+            },
+          });
+          return;
         }
         onSuccess([]);
       },

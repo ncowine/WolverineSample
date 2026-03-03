@@ -490,8 +490,8 @@ export class BacktestConfigComponent {
 
   // Backtest params
   symbol = 'AAPL';
-  startDate = '2023-01-01';
-  endDate = '2025-12-31';
+  startDate = new Date(Date.now() - 2 * 365.25 * 86400000).toISOString().slice(0, 10); // 2 years ago
+  endDate = new Date().toISOString().slice(0, 10); // today
 
   // Optimization param ranges
   paramRanges: ParamRange[] = [];
@@ -532,21 +532,31 @@ export class BacktestConfigComponent {
     this.running.set(true);
     this.error.set('');
     this.detectedRegime.set(null);
-    this.runningLabel.set(`Analyzing ${sym} market regime...`);
+    this.runningLabel.set(`Analyzing ${sym}...`);
 
     try {
-      // Step 1: Detect regime
-      const regime = await this.detectRegime(sym);
+      // Step 1: Detect regime (also tells us if data is missing)
+      let regime = await this.detectRegime(sym);
+
+      // Step 2: If no/insufficient data, auto-fetch from Yahoo Finance
+      if (regime.regime === 'Unknown') {
+        this.runningLabel.set(`Fetching ${sym} market data from Yahoo Finance (this may take a moment)...`);
+        await this.ingestData(sym);
+        // Re-detect with real data now available
+        this.runningLabel.set(`Analyzing ${sym} market regime...`);
+        regime = await this.detectRegime(sym);
+      }
+
       this.detectedRegime.set(regime);
 
-      // Step 2: Get the matching template
+      // Step 3: Get the matching template
       const tpl = TEMPLATES[regime.recommendedTemplate] ?? TEMPLATES['Momentum'];
       this.runningLabel.set(`Creating ${tpl.name} strategy for ${sym}...`);
 
-      // Step 3: Create the strategy
+      // Step 4: Create the strategy
       const strategyId = await this.createTemplateStrategy(tpl, sym);
 
-      // Step 4: Run the backtest
+      // Step 5: Run the backtest
       this.runningLabel.set(`Running ${tpl.name} backtest on ${sym}...`);
       this.api.runBacktest({
         strategyId,
@@ -565,7 +575,7 @@ export class BacktestConfigComponent {
       });
     } catch (e: any) {
       this.running.set(false);
-      this.error.set(e.error?.detail ?? e.message ?? 'Analysis failed');
+      this.error.set(e.error?.detail ?? e.message ?? 'Something went wrong. Check the symbol and try again.');
     }
   }
 
@@ -573,10 +583,18 @@ export class BacktestConfigComponent {
     return new Promise((resolve, reject) => {
       this.api.detectStockRegime(symbol).subscribe({
         next: (res: any) => {
-          // Normalize confidence to percentage
           if (res.confidence <= 1) res.confidence = res.confidence * 100;
           resolve(res);
         },
+        error: (err: any) => reject(err),
+      });
+    });
+  }
+
+  private ingestData(symbol: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.api.ingestMarketData(symbol, 3).subscribe({
+        next: () => resolve(),
         error: (err: any) => reject(err),
       });
     });

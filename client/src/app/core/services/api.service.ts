@@ -18,6 +18,14 @@ export class ApiService {
     return this.http.get<any>(`/api/market-data/stocks/${symbol}/history`, { params: this.toHttpParams(params) });
   }
 
+  fetchMarketData(symbol: string, from?: string, to?: string) {
+    return this.http.post<any>('/api/market-data/fetch', { symbol, from, to });
+  }
+
+  ingestMarketData(symbol: string, yearsBack = 3) {
+    return this.http.post<any>('/api/market-data/ingest', { symbol, yearsBack });
+  }
+
   // --- Trading: Accounts ---
   createPaperAccount() {
     return this.http.post<any>('/api/trading/accounts/paper', {});
