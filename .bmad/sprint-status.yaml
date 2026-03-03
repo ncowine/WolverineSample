@@ -552,7 +552,7 @@ sprints:
     goal: "ML Pipeline Core"
     capacity_points: 30
     committed_points: 23
-    completed_points: 5
+    completed_points: 10
     stories:
       - story_id: "STORY-071"
         title: "Feature Store & Indicator Snapshot"
@@ -563,7 +563,8 @@ sprints:
       - story_id: "STORY-072"
         title: "Feature Extractor"
         points: 5
-        status: "not_started"
+        status: "completed"
+        completion_date: "2026-03-03"
         epic: "ML Pipeline"
       - story_id: "STORY-073"
         title: "ML Model Training Pipeline"

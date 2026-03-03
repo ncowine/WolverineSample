@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using TradingAssistant.Application.Indicators;
+using TradingAssistant.Domain.Intelligence;
+using TradingAssistant.Domain.Intelligence.Enums;
 
 namespace TradingAssistant.Application.Handlers.Intelligence;
 

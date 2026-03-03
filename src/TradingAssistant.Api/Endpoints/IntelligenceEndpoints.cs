@@ -41,6 +41,12 @@ public class IntelligenceEndpoints : IEndpoint
 
         group.MapGet("/discovered-rules/{strategyId:guid}", GetDiscoveredRules)
             .WithSummary("Get rule discovery history for a strategy");
+
+        group.MapGet("/features", GetFeatureSnapshots)
+            .WithSummary("Get paginated feature snapshots with optional filters");
+
+        group.MapGet("/training-data", GetTrainingData)
+            .WithSummary("Get training dataset metadata and feature column schema");
     }
 
     private static async Task<MarketRegimeDto> GetCurrentRegime(
@@ -104,5 +110,30 @@ public class IntelligenceEndpoints : IEndpoint
     {
         return await bus.InvokeAsync<IReadOnlyList<DiscoverRulesResultDto>>(
             new GetDiscoveredRulesQuery(strategyId));
+    }
+
+    private static async Task<PagedResponse<FeatureSnapshotDto>> GetFeatureSnapshots(
+        [FromQuery] string? symbol,
+        [FromQuery] string? marketCode,
+        [FromQuery] string? outcome,
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
+        IMessageBus bus)
+    {
+        return await bus.InvokeAsync<PagedResponse<FeatureSnapshotDto>>(
+            new GetFeatureSnapshotsQuery(symbol, marketCode, outcome,
+                page > 0 ? page : 1, pageSize > 0 ? pageSize : 50));
+    }
+
+    private static async Task<TrainingDataResultDto> GetTrainingData(
+        [FromQuery] string? symbol,
+        [FromQuery] string? marketCode,
+        [FromQuery] int? minVersion,
+        [FromQuery] int maxRecords,
+        IMessageBus bus)
+    {
+        return await bus.InvokeAsync<TrainingDataResultDto>(
+            new GetTrainingDataQuery(symbol, marketCode, minVersion,
+                maxRecords > 0 ? maxRecords : 10_000));
     }
 }
