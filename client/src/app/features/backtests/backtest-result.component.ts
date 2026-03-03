@@ -59,7 +59,7 @@ interface MonthCell { year: number; month: number; value: number; }
       @if (loading()) {
         <div class="flex flex-col items-center gap-3 p-12">
           <span class="loading loading-spinner loading-lg"></span>
-          <span class="text-sm text-base-content/60">Loading backtest result...</span>
+          <span class="text-sm text-base-content/60">{{ loadingLabel() }}</span>
         </div>
       } @else if (error()) {
         <div class="alert alert-error text-sm">{{ error() }}</div>
@@ -338,9 +338,11 @@ export class BacktestResultComponent implements OnInit, AfterViewInit, OnDestroy
 
   // State
   loading = signal(true);
+  loadingLabel = signal('Loading backtest result...');
   error = signal('');
   result = signal<any>(null);
   tab = signal<'equity' | 'trades' | 'monthly' | 'wf'>('equity');
+  private pollTimer: any = null;
 
   // Parsed data
   equityCurve = signal<EquityPoint[]>([]);
@@ -406,18 +408,30 @@ export class BacktestResultComponent implements OnInit, AfterViewInit, OnDestroy
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.loading.set(false); this.error.set('No backtest ID'); return; }
 
+    this.loadingLabel.set('Running backtest...');
+    this.pollForResult(id, 0);
+  }
+
+  private pollForResult(id: string, attempt: number): void {
+    const maxAttempts = 30; // 30 × 2s = 60s max wait
+    const intervalMs = 2000;
+
     this.api.getBacktestResult(id).subscribe({
       next: (res) => {
         this.result.set(res);
         this.parseJsonFields(res);
         this.loading.set(false);
-
-        // Render charts after view updates
         setTimeout(() => this.renderCharts(), 0);
       },
-      error: (err) => {
-        this.error.set(err.error?.detail ?? 'Failed to load result');
-        this.loading.set(false);
+      error: () => {
+        if (attempt >= maxAttempts) {
+          this.error.set('Backtest is taking longer than expected. Please refresh the page to check again.');
+          this.loading.set(false);
+          return;
+        }
+        const dots = '.'.repeat((attempt % 3) + 1);
+        this.loadingLabel.set(`Running backtest${dots} (${attempt * 2}s)`);
+        this.pollTimer = setTimeout(() => this.pollForResult(id, attempt + 1), intervalMs);
       },
     });
   }
@@ -427,6 +441,7 @@ export class BacktestResultComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngOnDestroy(): void {
+    if (this.pollTimer) clearTimeout(this.pollTimer);
     this.resizeObs?.disconnect();
     this.equityChartApi?.remove();
     this.drawdownChartApi?.remove();
