@@ -10,5 +10,11 @@ public class BacktestConfig
     public decimal CommissionPerTrade { get; init; } = 1m;
     public decimal RiskFreeRate { get; init; } = 4.5m; // annual %
 
+    /// <summary>Market code for cost profile selection (US, UK, UK_USD, IN).</summary>
+    public string CostProfileMarket { get; init; } = "US";
+
+    /// <summary>Base currency for the account (GBP, USD).</summary>
+    public string BaseCurrency { get; init; } = "USD";
+
     public static BacktestConfig Default => new();
 }

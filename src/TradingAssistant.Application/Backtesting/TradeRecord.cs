@@ -16,4 +16,12 @@ public record TradeRecord
     public decimal Commission { get; init; }
     public int HoldingDays { get; init; }
     public string ExitReason { get; init; } = string.Empty;
+    public decimal StopLossPrice { get; init; }
+    public decimal InitialStopLoss { get; init; }
+    public decimal TakeProfitPrice { get; init; }
+
+    // Trade reasoning (serialized as part of TradeLogJson, no schema migration needed)
+    public string? ReasoningJson { get; init; }
+    public decimal SignalScore { get; init; }
+    public string? Regime { get; init; }
 }

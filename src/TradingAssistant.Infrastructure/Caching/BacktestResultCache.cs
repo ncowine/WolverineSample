@@ -45,19 +45,27 @@ public class BacktestResultCache : DataCache<Guid, BacktestResultDto>
             if (run.Result is null)
                 continue;
 
+            var r = run.Result;
             result[run.Id] = new BacktestResultDto(
-                run.Result.Id, run.Id, run.StrategyId,
+                r.Id, run.Id, run.StrategyId,
                 run.Symbol, run.Status.ToString(),
-                run.Result.TotalTrades, run.Result.WinRate,
-                run.Result.TotalReturn, run.Result.MaxDrawdown, run.Result.SharpeRatio,
+                r.TotalTrades, r.WinRate,
+                r.TotalReturn, r.MaxDrawdown, r.SharpeRatio,
                 run.StartDate, run.EndDate, run.CreatedAt,
-                run.Result.Cagr, run.Result.SortinoRatio,
-                run.Result.CalmarRatio, run.Result.ProfitFactor,
-                run.Result.Expectancy, run.Result.OverfittingScore,
-                run.Result.EquityCurveJson, run.Result.TradeLogJson,
-                run.Result.MonthlyReturnsJson, run.Result.BenchmarkReturnJson,
-                run.Result.ParametersJson, run.Result.WalkForwardJson,
-                run.Result.SpyComparisonJson);
+                r.Cagr, r.SortinoRatio,
+                r.CalmarRatio, r.ProfitFactor,
+                r.Expectancy, r.OverfittingScore,
+                r.EquityCurveJson, r.TradeLogJson,
+                r.MonthlyReturnsJson, r.BenchmarkReturnJson,
+                r.ParametersJson, r.WalkForwardJson,
+                r.SpyComparisonJson,
+                // Portfolio fields
+                run.UniverseId, run.UniverseName,
+                run.InitialCapital, run.MaxPositions,
+                run.TotalSymbols, run.SymbolsWithData,
+                r.UniqueSymbolsTraded, r.AveragePositionsHeld,
+                r.MaxPositionsHeld, r.SymbolBreakdownJson,
+                r.ExecutionLogJson, r.RegimeTimelineJson);
         }
 
         return result;

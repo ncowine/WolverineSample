@@ -23,6 +23,10 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("AveragePositionsHeld")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("BacktestRunId")
                         .HasColumnType("TEXT");
 
@@ -47,6 +51,10 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                         .HasMaxLength(500000)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ExecutionLogJson")
+                        .HasMaxLength(500000)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("Expectancy")
                         .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
@@ -54,6 +62,9 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                     b.Property<decimal>("MaxDrawdown")
                         .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("MaxPositionsHeld")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("MonthlyReturnsJson")
                         .IsRequired()
@@ -73,6 +84,10 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                         .HasPrecision(8, 4)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("RegimeTimelineJson")
+                        .HasMaxLength(50000)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ResultData")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -90,6 +105,10 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("SymbolBreakdownJson")
+                        .HasMaxLength(100000)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("TotalReturn")
                         .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
@@ -101,6 +120,9 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                         .IsRequired()
                         .HasMaxLength(500000)
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("UniqueSymbolsTraded")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -134,6 +156,13 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("InitialCapital")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MaxPositions")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("TEXT");
 
@@ -146,6 +175,19 @@ namespace TradingAssistant.Infrastructure.Migrations.Backtest
                     b.Property<string>("Symbol")
                         .IsRequired()
                         .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("SymbolsWithData")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("TotalSymbols")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UniverseName")
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("UpdatedAt")

@@ -13,9 +13,6 @@ public static class ConditionEvaluator
     /// <summary>
     /// Evaluate whether all condition groups are satisfied for the given bar.
     /// </summary>
-    /// <param name="groups">Condition groups (AND'd together).</param>
-    /// <param name="bar">Current daily bar with indicators.</param>
-    /// <param name="prevBar">Previous bar (for crossover detection). Null = skip crossovers.</param>
     public static bool Evaluate(
         List<ConditionGroup> groups,
         CandleWithIndicators bar,
@@ -25,13 +22,11 @@ public static class ConditionEvaluator
 
         foreach (var group in groups)
         {
-            // Get indicators for the group's timeframe
             var indicators = GetIndicatorsForTimeframe(bar, group.Timeframe);
             var prevIndicators = prevBar != null ? GetIndicatorsForTimeframe(prevBar, group.Timeframe) : null;
 
             if (indicators == null) return false;
 
-            // OR logic within group: at least one condition must be true
             var anyTrue = false;
             foreach (var condition in group.Conditions)
             {
@@ -42,11 +37,46 @@ public static class ConditionEvaluator
                 }
             }
 
-            // AND logic: if any group fails, overall fails
             if (!anyTrue) return false;
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Evaluate with details: returns matched condition descriptions alongside bool result.
+    /// </summary>
+    public static (bool Passed, List<string> MatchedConditions) EvaluateWithDetails(
+        List<ConditionGroup> groups,
+        CandleWithIndicators bar,
+        CandleWithIndicators? prevBar)
+    {
+        var matched = new List<string>();
+        if (groups.Count == 0) return (false, matched);
+
+        foreach (var group in groups)
+        {
+            var indicators = GetIndicatorsForTimeframe(bar, group.Timeframe);
+            var prevIndicators = prevBar != null ? GetIndicatorsForTimeframe(prevBar, group.Timeframe) : null;
+
+            if (indicators == null) return (false, matched);
+
+            var anyTrue = false;
+            foreach (var condition in group.Conditions)
+            {
+                if (EvaluateCondition(condition, bar, indicators, prevIndicators))
+                {
+                    var value = GetIndicatorValue(condition.Indicator, indicators, bar);
+                    matched.Add($"{group.Timeframe}:{condition.Indicator} {condition.Comparison} {condition.Value} (actual={value:F2})");
+                    anyTrue = true;
+                    break;
+                }
+            }
+
+            if (!anyTrue) return (false, matched);
+        }
+
+        return (true, matched);
     }
 
     internal static bool EvaluateCondition(
@@ -58,13 +88,15 @@ public static class ConditionEvaluator
         var value = GetIndicatorValue(condition.Indicator, current, bar);
         var prevValue = prev != null ? GetIndicatorValue(condition.Indicator, prev, bar) : (decimal?)null;
 
+        var target = GetComparisonTarget(condition, current, bar);
+
         return condition.Comparison switch
         {
-            "GreaterThan" => value > GetComparisonTarget(condition, current, bar),
-            "LessThan" => value < GetComparisonTarget(condition, current, bar),
+            "GreaterThan" or "IsAbove" => value > target,
+            "LessThan" or "IsBelow" => value < target,
             "Between" => value >= condition.Value && condition.ValueHigh.HasValue && value <= condition.ValueHigh.Value,
-            "CrossAbove" => prevValue.HasValue && prevValue.Value <= GetComparisonTarget(condition, prev!, bar) && value > GetComparisonTarget(condition, current, bar),
-            "CrossBelow" => prevValue.HasValue && prevValue.Value >= GetComparisonTarget(condition, prev!, bar) && value < GetComparisonTarget(condition, current, bar),
+            "CrossAbove" => prevValue.HasValue && prevValue.Value <= GetComparisonTarget(condition, prev!, bar) && value > target,
+            "CrossBelow" => prevValue.HasValue && prevValue.Value >= GetComparisonTarget(condition, prev!, bar) && value < target,
             _ => false
         };
     }

@@ -10,4 +10,5 @@ public class User : BaseEntity
     public string Role { get; set; } = "User";
 
     public ICollection<Account> Accounts { get; set; } = new List<Account>();
+    public UserSettings? Settings { get; set; }
 }

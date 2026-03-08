@@ -148,27 +148,125 @@ const TEMPLATES: Record<string, StrategyTemplate> = {
         </button>
       </div>
 
+      <!-- Mode Toggle: Single Stock / Universe Portfolio -->
+      <div class="flex gap-2 mb-4">
+        <button class="btn btn-sm" [class.btn-primary]="!universeMode()" [class.btn-ghost]="universeMode()" (click)="universeMode.set(false)">Single Stock</button>
+        <button class="btn btn-sm" [class.btn-primary]="universeMode()" [class.btn-ghost]="!universeMode()" (click)="universeMode.set(true)">Universe Portfolio</button>
+      </div>
+
+      <!-- ===== UNIVERSE MODE ===== -->
+      @if (universeMode()) {
+        <div class="card bg-base-200 mb-6">
+          <div class="card-body p-5 gap-4">
+            <p class="text-base-content/60 text-sm">Select a universe. The system will detect the current market regime (via SPY), auto-select the best strategy, and run a portfolio backtest across all symbols.</p>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="form-control col-span-2">
+                <label class="label"><span class="label-text text-xs">Universe</span></label>
+                <select class="select select-bordered" [(ngModel)]="selectedUniverseId">
+                  <option value="">-- Select universe --</option>
+                  @for (u of universes(); track u.id) {
+                    <option [value]="u.id">{{ u.name }} ({{ getSymbolCount(u) }} symbols)</option>
+                  }
+                </select>
+              </div>
+              <div class="form-control col-span-2">
+                <label class="label"><span class="label-text text-xs">Date Range</span></label>
+                <div class="flex gap-2">
+                  @for (yr of yearOptions; track yr.value) {
+                    <button class="btn btn-sm flex-1"
+                            [class.btn-primary]="selectedYears() === yr.value"
+                            [class.btn-outline]="selectedYears() !== yr.value"
+                            (click)="setYearRange(yr.value)">{{ yr.label }}</button>
+                  }
+                </div>
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text text-xs">Max Positions</span></label>
+                <input type="number" class="input input-bordered input-sm" [(ngModel)]="universeMaxPositions" min="1" max="50" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text text-xs">Initial Capital ({{ currencySymbol() }})</span></label>
+                <input type="number" class="input input-bordered input-sm" [(ngModel)]="initialCapital" step="10000" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Regime detection result (shown after analysis) -->
+        @if (universeDetectedRegime()) {
+          <div class="card bg-base-200 mb-6">
+            <div class="card-body p-4 gap-3">
+              <div class="flex items-center gap-3">
+                <div class="badge badge-lg"
+                     [class.badge-success]="universeDetectedRegime()!.regime === 'Bull'"
+                     [class.badge-error]="universeDetectedRegime()!.regime === 'Bear'"
+                     [class.badge-warning]="universeDetectedRegime()!.regime === 'HighVolatility'"
+                     [class.badge-info]="universeDetectedRegime()!.regime === 'Sideways'">
+                  {{ universeDetectedRegime()!.regime }}
+                </div>
+                <span class="text-sm font-semibold">{{ universeDetectedRegime()!.recommendedTemplate }} Strategy Auto-Selected</span>
+                <span class="text-xs text-base-content/40">Confidence: {{ universeDetectedRegime()!.confidence | number:'1.0-0' }}%</span>
+              </div>
+              <p class="text-xs text-base-content/60">{{ universeDetectedRegime()!.explanation }}</p>
+
+              @if (getTemplate(universeDetectedRegime()!.recommendedTemplate); as tpl) {
+                <div class="flex gap-4 text-xs font-mono mt-1">
+                  <span>{{ tpl.description }}</span>
+                </div>
+                <div class="flex gap-4 text-[10px] font-mono text-base-content/40">
+                  <span>Stop Loss: {{ tpl.stopLoss.type }} x{{ tpl.stopLoss.multiplier }}</span>
+                  <span>Take Profit: {{ tpl.takeProfit.type }} x{{ tpl.takeProfit.multiplier }}</span>
+                  <span>Risk/Trade: {{ tpl.riskPercent }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (error()) {
+          <div class="alert alert-error text-sm mb-4">{{ error() }}</div>
+        }
+        @if (running()) {
+          <div class="flex items-center gap-3 mb-4">
+            <span class="loading loading-spinner loading-md"></span>
+            <span class="text-sm">{{ runningLabel() }}</span>
+          </div>
+        }
+
+        <button class="btn btn-primary btn-lg w-full"
+                (click)="runUniverseBacktest()"
+                [disabled]="running() || !selectedUniverseId">
+          @if (!selectedUniverseId) {
+            Select a universe above
+          } @else {
+            Analyze Market & Run Portfolio Backtest
+          }
+        </button>
+      }
+
       <!-- ===== SMART MODE (default) ===== -->
-      @if (!advancedMode()) {
+      @if (!advancedMode() && !universeMode()) {
 
         <div class="card bg-base-200 mb-6">
           <div class="card-body p-5 gap-4">
             <p class="text-base-content/60 text-sm">Enter a stock symbol. The system will analyze its price history, detect the current market regime, and automatically pick the best strategy.</p>
 
-            <div class="flex gap-3 items-end">
-              <div class="form-control flex-1">
-                <label class="label"><span class="label-text text-xs">Symbol</span></label>
-                <input class="input input-bordered input-lg font-mono uppercase text-center tracking-wider"
-                       [(ngModel)]="symbol" placeholder="AAPL"
-                       (keydown.enter)="runSmartBacktest()" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text text-xs">Start</span></label>
-                <input type="date" class="input input-bordered input-sm" [(ngModel)]="startDate" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text text-xs">End</span></label>
-                <input type="date" class="input input-bordered input-sm" [(ngModel)]="endDate" />
+            <div class="form-control mb-2">
+              <label class="label"><span class="label-text text-xs">Symbol</span></label>
+              <input class="input input-bordered input-lg font-mono uppercase text-center tracking-wider"
+                     [(ngModel)]="symbol" placeholder="AAPL"
+                     (keydown.enter)="runSmartBacktest()" />
+            </div>
+            <div class="form-control">
+              <label class="label"><span class="label-text text-xs">Date Range</span></label>
+              <div class="flex gap-2">
+                @for (yr of yearOptions; track yr.value) {
+                  <button class="btn btn-sm flex-1"
+                          [class.btn-primary]="selectedYears() === yr.value"
+                          [class.btn-outline]="selectedYears() !== yr.value"
+                          (click)="setYearRange(yr.value)">{{ yr.label }}</button>
+                }
               </div>
             </div>
           </div>
@@ -228,7 +326,7 @@ const TEMPLATES: Record<string, StrategyTemplate> = {
       }
 
       <!-- ===== ADVANCED MODE ===== -->
-      @if (advancedMode()) {
+      @if (advancedMode() && !universeMode()) {
 
         <ul class="steps steps-horizontal w-full mb-8 text-xs">
           <li class="step" [class.step-primary]="step() >= 1">Strategy</li>
@@ -245,7 +343,7 @@ const TEMPLATES: Record<string, StrategyTemplate> = {
               <div class="form-control">
                 <label class="label"><span class="label-text">Strategy</span></label>
                 <div class="flex gap-2">
-                  <select class="select select-bordered select-sm flex-1" [(ngModel)]="selectedStrategyId">
+                  <select class="select select-bordered select-sm flex-1" [(ngModel)]="selectedStrategyId" (ngModelChange)="onStrategySelected($event)">
                     <option value="">-- Create new --</option>
                     @for (s of strategies(); track s.id) {
                       <option [value]="s.id">{{ s.name }}</option>
@@ -380,6 +478,11 @@ const TEMPLATES: Record<string, StrategyTemplate> = {
                   <input type="date" class="input input-bordered input-sm" [(ngModel)]="endDate" />
                 </div>
               </div>
+              @if (strategyOptimizedParams()) {
+                <div class="alert alert-success py-2 text-xs">
+                  <span>This strategy has optimized parameters (v{{ strategyOptimizedParams()!.version }}, Grade: {{ strategyOptimizedParams()!.overfittingGrade }})</span>
+                </div>
+              }
               <div class="divider text-xs">Optimization Ranges (for Walk-Forward)</div>
               <div class="flex items-center justify-between mb-1">
                 <span class="text-sm font-semibold">Parameter Ranges</span>
@@ -418,7 +521,7 @@ const TEMPLATES: Record<string, StrategyTemplate> = {
                 <div class="form-control"><label class="label"><span class="label-text text-xs">Max Portfolio Heat (%)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="maxPortfolioHeat" step="0.5" /></div>
                 <div class="form-control"><label class="label"><span class="label-text text-xs">Max Drawdown (%)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="maxDrawdown" step="1" /></div>
                 <div class="form-control"><label class="label"><span class="label-text text-xs">Drawdown Recovery (%)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="drawdownRecovery" step="1" /></div>
-                <div class="form-control"><label class="label"><span class="label-text text-xs">Initial Capital ($)</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="initialCapital" step="1000" /></div>
+                <div class="form-control"><label class="label"><span class="label-text text-xs">Initial Capital ({{ currencySymbol() }})</span></label><input type="number" class="input input-bordered input-sm" [(ngModel)]="initialCapital" step="1000" /></div>
               </div>
               <div class="card-actions justify-between mt-4">
                 <button class="btn btn-ghost btn-sm" (click)="step.set(2)">Back</button>
@@ -452,9 +555,54 @@ const TEMPLATES: Record<string, StrategyTemplate> = {
               @if (running()) {
                 <div class="flex items-center gap-3"><span class="loading loading-spinner loading-md"></span><span class="text-sm">{{ runningLabel() }}</span></div>
               }
+              <!-- Optimization Result -->
+              @if (optimizationResult()) {
+                <div class="card bg-base-300">
+                  <div class="card-body p-4 gap-3">
+                    <div class="flex items-center gap-3">
+                      <h4 class="text-sm font-semibold">Optimization Result</h4>
+                      <span class="badge text-xs"
+                            [class.badge-success]="optimizationResult()!.overfittingGrade === 'Good'"
+                            [class.badge-warning]="optimizationResult()!.overfittingGrade === 'Warning'"
+                            [class.badge-error]="optimizationResult()!.overfittingGrade === 'Overfitted'">
+                        {{ optimizationResult()!.overfittingGrade }}
+                      </span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+                      <div><span class="text-base-content/50">OOS Sharpe:</span> {{ optimizationResult()!.avgOutOfSampleSharpe.toFixed(2) }}</div>
+                      <div><span class="text-base-content/50">Efficiency:</span> {{ (optimizationResult()!.avgEfficiency * 100).toFixed(1) }}%</div>
+                      <div><span class="text-base-content/50">Overfit:</span> {{ (optimizationResult()!.avgOverfittingScore * 100).toFixed(1) }}%</div>
+                    </div>
+                    @if (optimizationResult()!.blessedParameters) {
+                      <div>
+                        <span class="text-xs text-base-content/50">Blessed Parameters:</span>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                          @for (p of objectEntries(optimizationResult()!.blessedParameters); track p[0]) {
+                            <span class="badge badge-xs badge-outline font-mono">{{ p[0] }}: {{ p[1] }}</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                    <button class="btn btn-success btn-sm mt-2" (click)="runBacktestWithOptimizedParams()" [disabled]="running()">
+                      Run Backtest with Optimized Params
+                    </button>
+                  </div>
+                </div>
+              }
+
               <div class="card-actions justify-between mt-4">
                 <button class="btn btn-ghost btn-sm" (click)="step.set(3)" [disabled]="running()">Back</button>
-                <button class="btn btn-primary btn-sm" (click)="runBacktest()" [disabled]="running() || !isNewStrategyValid()">Run Backtest</button>
+                <div class="flex gap-2">
+                  @if (paramRanges.length > 0) {
+                    <button class="btn btn-outline btn-sm" (click)="runOptimization()" [disabled]="running() || !isNewStrategyValid()">
+                      @if (optimizing()) {
+                        <span class="loading loading-spinner loading-xs"></span>
+                      }
+                      Optimize
+                    </button>
+                  }
+                  <button class="btn btn-primary btn-sm" (click)="runBacktest()" [disabled]="running() || !isNewStrategyValid()">Run Backtest</button>
+                </div>
               </div>
             </div>
           </div>
@@ -469,6 +617,13 @@ export class BacktestConfigComponent {
 
   // Mode toggle
   advancedMode = signal(false);
+  universeMode = signal(false);
+
+  // Universe mode state
+  universes = signal<any[]>([]);
+  selectedUniverseId = '';
+  universeMaxPositions = 10;
+  universeDetectedRegime = signal<any>(null);
 
   // Smart mode state
   detectedRegime = signal<any>(null);
@@ -506,19 +661,73 @@ export class BacktestConfigComponent {
   drawdownRecovery = 5;
   initialCapital = 100000;
 
+  // User settings
+  currencySymbol = signal('$');
+  costProfileMarket = 'UK';
+  baseCurrency = 'GBP';
+
   // Run state
   running = signal(false);
   runningLabel = signal('');
   error = signal('');
+  optimizing = signal(false);
+  optimizationResult = signal<any>(null);
+  strategyOptimizedParams = signal<any>(null);
 
   // Constants
   indicators = INDICATORS;
   comparisons = COMPARISONS;
   timeframes = TIMEFRAMES;
   templateList = Object.values(TEMPLATES);
+  yearOptions = [
+    { label: '1Y', value: 1 },
+    { label: '3Y', value: 3 },
+    { label: '5Y', value: 5 },
+    { label: '10Y', value: 10 },
+    { label: '15Y', value: 15 },
+    { label: '20Y', value: 20 },
+  ];
+  selectedYears = signal(5);
+
+  private currencySymbols: Record<string, string> = { GBP: '\u00A3', USD: '$', EUR: '\u20AC', INR: '\u20B9' };
 
   constructor() {
     this.loadStrategies();
+    this.loadUniverses();
+    this.loadUserSettings();
+  }
+
+  private loadUserSettings(): void {
+    this.api.getUserSettings().subscribe({
+      next: (s: any) => {
+        if (s.defaultInitialCapital) this.initialCapital = s.defaultInitialCapital;
+        if (s.defaultCurrency) {
+          this.baseCurrency = s.defaultCurrency;
+          this.currencySymbol.set(this.currencySymbols[s.defaultCurrency] ?? s.defaultCurrency);
+        }
+        if (s.costProfileMarket) this.costProfileMarket = s.costProfileMarket;
+      },
+      error: () => {},
+    });
+  }
+
+  loadUniverses(): void {
+    this.api.getUniverses().subscribe({
+      next: (res: any) => this.universes.set(Array.isArray(res) ? res : res.items ?? []),
+      error: () => this.universes.set([]),
+    });
+  }
+
+  setYearRange(years: number): void {
+    this.selectedYears.set(years);
+    this.endDate = new Date().toISOString().slice(0, 10);
+    this.startDate = new Date(Date.now() - years * 365.25 * 86400000).toISOString().slice(0, 10);
+  }
+
+  getSymbolCount(universe: any): number {
+    if (Array.isArray(universe.symbols)) return universe.symbols.length;
+    if (typeof universe.symbols === 'string' && universe.symbols.length > 0) return universe.symbols.split(',').length;
+    return 0;
   }
 
   getTemplate(id: string): StrategyTemplate | undefined {
@@ -565,10 +774,12 @@ export class BacktestConfigComponent {
         symbol: sym,
         startDate: this.startDate,
         endDate: this.endDate,
+        initialCapital: this.initialCapital,
+        costProfileMarket: this.costProfileMarket,
       }).subscribe({
         next: (result: any) => {
           this.running.set(false);
-          this.router.navigate(['/backtests', result.id]);
+          this.router.navigate(['/backtests', result.backtestRunId]);
         },
         error: (err: any) => {
           this.running.set(false);
@@ -629,6 +840,75 @@ export class BacktestConfigComponent {
     });
   }
 
+  // ===== UNIVERSE MODE =====
+
+  async runUniverseBacktest(): Promise<void> {
+    if (!this.selectedUniverseId) return;
+
+    this.running.set(true);
+    this.error.set('');
+    this.universeDetectedRegime.set(null);
+
+    try {
+      // Step 1: Detect current market regime via SPY
+      this.runningLabel.set('Detecting market regime via SPY...');
+      let regime = await this.detectRegime('SPY');
+
+      if (regime.regime === 'Unknown') {
+        this.runningLabel.set('Fetching SPY market data...');
+        await this.ingestData('SPY');
+        this.runningLabel.set('Re-analyzing market regime...');
+        regime = await this.detectRegime('SPY');
+      }
+
+      this.universeDetectedRegime.set(regime);
+
+      // Step 2: Auto-select best template based on regime
+      const tpl = TEMPLATES[regime.recommendedTemplate] ?? TEMPLATES['Momentum'];
+      this.runningLabel.set(`${tpl.name} strategy selected — creating...`);
+
+      // Step 3: Create all 3 template strategies for runtime regime switching
+      const [momentumId, meanRevId, breakoutId] = await Promise.all([
+        this.createTemplateStrategy(TEMPLATES['Momentum'], 'UNIVERSE'),
+        this.createTemplateStrategy(TEMPLATES['MeanReversion'], 'UNIVERSE'),
+        this.createTemplateStrategy(TEMPLATES['Breakout'], 'UNIVERSE'),
+      ]);
+
+      const strategyMap: Record<string, string> = {
+        Momentum: momentumId,
+        MeanReversion: meanRevId,
+        Breakout: breakoutId,
+      };
+
+      // Use the regime-recommended one as primary
+      const primaryStrategyId = strategyMap[regime.recommendedTemplate] ?? momentumId;
+
+      // Step 4: Run the portfolio backtest (unified endpoint)
+      this.runningLabel.set(`Running ${tpl.name} portfolio backtest...`);
+      this.api.runBacktest({
+        universeId: this.selectedUniverseId,
+        strategyId: primaryStrategyId,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        initialCapital: this.initialCapital,
+        maxPositions: this.universeMaxPositions,
+        costProfileMarket: this.costProfileMarket,
+      }).subscribe({
+        next: (result: any) => {
+          this.running.set(false);
+          this.router.navigate(['/backtests', result.backtestRunId]);
+        },
+        error: (err: any) => {
+          this.running.set(false);
+          this.error.set(err.error?.detail ?? err.message ?? 'Portfolio backtest failed');
+        },
+      });
+    } catch (e: any) {
+      this.running.set(false);
+      this.error.set(e.error?.detail ?? e.message ?? 'Something went wrong.');
+    }
+  }
+
   // ===== ADVANCED MODE =====
 
   loadStrategies(): void {
@@ -636,6 +916,20 @@ export class BacktestConfigComponent {
       next: (res: any) => this.strategies.set(res.items ?? []),
       error: () => this.strategies.set([]),
     });
+  }
+
+  onStrategySelected(strategyId: string): void {
+    this.strategyOptimizedParams.set(null);
+    if (strategyId) {
+      this.api.getOptimizedParams(strategyId).subscribe({
+        next: (res: any) => {
+          if (res?.current) {
+            this.strategyOptimizedParams.set(res.current);
+          }
+        },
+        error: () => {},
+      });
+    }
   }
 
   applyTemplate(templateId: string): void {
@@ -683,8 +977,8 @@ export class BacktestConfigComponent {
     try {
       const strategyId = await this.ensureStrategy();
       if (!strategyId) return;
-      this.api.runBacktest({ strategyId, symbol: this.symbol.toUpperCase(), startDate: this.startDate, endDate: this.endDate }).subscribe({
-        next: (result: any) => { this.running.set(false); this.router.navigate(['/backtests', result.id]); },
+      this.api.runBacktest({ strategyId, symbol: this.symbol.toUpperCase(), startDate: this.startDate, endDate: this.endDate, initialCapital: this.initialCapital, costProfileMarket: this.costProfileMarket }).subscribe({
+        next: (result: any) => { this.running.set(false); this.router.navigate(['/backtests', result.backtestRunId]); },
         error: (err: any) => { this.running.set(false); this.error.set(err.error?.detail ?? err.message ?? 'Backtest failed'); },
       });
     } catch (e: any) { this.running.set(false); this.error.set(e.message ?? 'Failed to create strategy'); }
@@ -721,6 +1015,82 @@ export class BacktestConfigComponent {
       groups.get(c.timeframe)!.push(cond);
     }
     return Array.from(groups.entries()).map(([timeframe, conds]) => ({ timeframe, conditions: conds }));
+  }
+
+  objectEntries(obj: Record<string, number>): [string, number][] {
+    return Object.entries(obj ?? {});
+  }
+
+  async runOptimization(): Promise<void> {
+    if (this.paramRanges.length === 0) return;
+    this.running.set(true);
+    this.optimizing.set(true);
+    this.runningLabel.set('Running walk-forward optimization (this may take a while)...');
+    this.error.set('');
+    this.optimizationResult.set(null);
+
+    try {
+      const strategyId = await this.ensureStrategy();
+      if (!strategyId) return;
+
+      this.api.runOptimization({
+        strategyId,
+        symbol: this.symbol.toUpperCase(),
+        startDate: this.startDate,
+        endDate: this.endDate,
+        initialCapital: this.initialCapital,
+        maxPositions: this.maxPositions,
+        costProfileMarket: this.costProfileMarket,
+        parameterRanges: this.paramRanges.map(p => ({
+          name: p.name,
+          min: p.min,
+          max: p.max,
+          step: p.step,
+        })),
+      }).subscribe({
+        next: (result: any) => {
+          this.running.set(false);
+          this.optimizing.set(false);
+          this.optimizationResult.set(result);
+        },
+        error: (err: any) => {
+          this.running.set(false);
+          this.optimizing.set(false);
+          this.error.set(err.error?.detail ?? err.message ?? 'Optimization failed');
+        },
+      });
+    } catch (e: any) {
+      this.running.set(false);
+      this.optimizing.set(false);
+      this.error.set(e.message ?? 'Failed to run optimization');
+    }
+  }
+
+  runBacktestWithOptimizedParams(): void {
+    const result = this.optimizationResult();
+    if (!result || !this.selectedStrategyId) return;
+
+    this.running.set(true);
+    this.runningLabel.set('Running backtest with optimized parameters...');
+    this.error.set('');
+
+    this.api.runBacktest({
+      strategyId: this.selectedStrategyId,
+      symbol: this.symbol.toUpperCase(),
+      startDate: this.startDate,
+      endDate: this.endDate,
+      initialCapital: this.initialCapital,
+      costProfileMarket: this.costProfileMarket,
+    }).subscribe({
+      next: (res: any) => {
+        this.running.set(false);
+        this.router.navigate(['/backtests', res.backtestRunId]);
+      },
+      error: (err: any) => {
+        this.running.set(false);
+        this.error.set(err.error?.detail ?? err.message ?? 'Backtest failed');
+      },
+    });
   }
 
   private flattenConditions(groups: any[]): ConditionForm[] {

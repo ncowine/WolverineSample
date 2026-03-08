@@ -20,6 +20,7 @@ public class TradingDbContext : DbContext
     public DbSet<TradeNote> TradeNotes => Set<TradeNote>();
     public DbSet<DcaPlan> DcaPlans => Set<DcaPlan>();
     public DbSet<DcaExecution> DcaExecutions => Set<DcaExecution>();
+    public DbSet<UserSettings> UserSettings => Set<UserSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -140,6 +141,18 @@ public class TradingDbContext : DbContext
             entity.HasIndex(e => e.EntityType);
             entity.HasIndex(e => e.Timestamp);
             entity.HasIndex(e => e.UserId);
+        });
+
+        modelBuilder.Entity<UserSettings>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.DefaultCurrency).HasMaxLength(3).IsRequired();
+            entity.Property(e => e.DefaultInitialCapital).HasPrecision(18, 2);
+            entity.Property(e => e.CostProfileMarket).HasMaxLength(10).IsRequired();
+            entity.HasOne(e => e.User)
+                .WithOne(u => u.Settings)
+                .HasForeignKey<UserSettings>(e => e.UserId);
+            entity.HasIndex(e => e.UserId).IsUnique();
         });
     }
 }

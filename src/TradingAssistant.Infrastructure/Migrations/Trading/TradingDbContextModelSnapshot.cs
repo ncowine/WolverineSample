@@ -95,6 +95,46 @@ namespace TradingAssistant.Infrastructure.Migrations.Trading
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TradingAssistant.Domain.Identity.UserSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BrokerSettingsJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CostProfileMarket")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DefaultCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DefaultInitialCapital")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserSettings");
+                });
+
             modelBuilder.Entity("TradingAssistant.Domain.Trading.Account", b =>
                 {
                     b.Property<Guid>("Id")
@@ -441,6 +481,17 @@ namespace TradingAssistant.Infrastructure.Migrations.Trading
                     b.ToTable("TradeNotes");
                 });
 
+            modelBuilder.Entity("TradingAssistant.Domain.Identity.UserSettings", b =>
+                {
+                    b.HasOne("TradingAssistant.Domain.Identity.User", "User")
+                        .WithOne("Settings")
+                        .HasForeignKey("TradingAssistant.Domain.Identity.UserSettings", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TradingAssistant.Domain.Trading.Account", b =>
                 {
                     b.HasOne("TradingAssistant.Domain.Identity.User", "User")
@@ -521,6 +572,8 @@ namespace TradingAssistant.Infrastructure.Migrations.Trading
             modelBuilder.Entity("TradingAssistant.Domain.Identity.User", b =>
                 {
                     b.Navigation("Accounts");
+
+                    b.Navigation("Settings");
                 });
 
             modelBuilder.Entity("TradingAssistant.Domain.Trading.Account", b =>

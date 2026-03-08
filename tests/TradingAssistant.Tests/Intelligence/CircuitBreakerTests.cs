@@ -166,9 +166,9 @@ public class CircuitBreakerTests
     }
 
     [Fact]
-    public void Evaluate_EquityRecovered_HighVol_StaysActive()
+    public void Evaluate_EquityRecovered_HighVol_Deactivates()
     {
-        // Equity recovered, but regime is HighVolatility → stay active
+        // Equity recovered — deactivates regardless of regime (regime gating removed)
         var eval = CircuitBreaker.Evaluate(
             currentEquity: 96_000m,
             peakEquity: 100_000m,
@@ -176,10 +176,9 @@ public class CircuitBreakerTests
             recoveryPercent: 5m,
             currentRegime: "HighVolatility");
 
-        Assert.False(eval.ShouldDeactivate);
-        Assert.True(eval.IsActive);
-        Assert.Contains("HighVolatility", eval.Detail);
-        Assert.Contains("waiting for regime change", eval.Detail);
+        Assert.True(eval.ShouldDeactivate);
+        Assert.False(eval.IsActive);
+        Assert.Contains("DEACTIVATED", eval.Detail);
     }
 
     [Fact]
@@ -246,15 +245,10 @@ public class CircuitBreakerTests
         Assert.True(eval3.IsActive);
         Assert.False(eval3.ShouldDeactivate);
 
-        // 4. Equity recovers but regime is HighVol → stays active
+        // 4. Equity recovers — deactivates regardless of regime
         var eval4 = CircuitBreaker.Evaluate(96_000m, 100_000m, true, 15m, 5m, "HighVolatility");
-        Assert.True(eval4.IsActive);
-        Assert.False(eval4.ShouldDeactivate);
-
-        // 5. Regime changes to Bull → deactivates
-        var eval5 = CircuitBreaker.Evaluate(96_000m, 100_000m, true, 15m, 5m, "Bull");
-        Assert.True(eval5.ShouldDeactivate);
-        Assert.False(eval5.IsActive);
+        Assert.True(eval4.ShouldDeactivate);
+        Assert.False(eval4.IsActive);
     }
 
     // ── Evaluate: Edge cases ──
@@ -297,8 +291,8 @@ public class CircuitBreakerTests
     [InlineData("Bull", true)]
     [InlineData("Bear", true)]
     [InlineData("Sideways", true)]
-    [InlineData("HighVolatility", false)]
-    [InlineData("highvolatility", false)] // case-insensitive
+    [InlineData("HighVolatility", true)]  // regime no longer gates deactivation
+    [InlineData("highvolatility", true)]  // regime no longer gates deactivation
     public void Evaluate_RegimeGating(string regime, bool shouldDeactivate)
     {
         var eval = CircuitBreaker.Evaluate(
@@ -329,7 +323,7 @@ public class CircuitBreakerTests
         Assert.Equal(30m, eval.DrawdownPercent);
         Assert.Equal("HighVolatility", eval.Regime);
 
-        // Recovery attempt in HighVol regime → stay locked
+        // Recovery attempt — deactivates regardless of regime
         var eval2 = CircuitBreaker.Evaluate(
             currentEquity: 96_000m,
             peakEquity: 100_000m,
@@ -337,16 +331,7 @@ public class CircuitBreakerTests
             recoveryPercent: 5m,
             currentRegime: "HighVolatility");
 
-        Assert.True(eval2.IsActive);
-
-        // VIX drops, regime shifts to Sideways → deactivate
-        var eval3 = CircuitBreaker.Evaluate(
-            currentEquity: 96_000m,
-            peakEquity: 100_000m,
-            isCurrentlyActive: true,
-            recoveryPercent: 5m,
-            currentRegime: "Sideways");
-
-        Assert.True(eval3.ShouldDeactivate);
+        Assert.True(eval2.ShouldDeactivate);
+        Assert.False(eval2.IsActive);
     }
 }

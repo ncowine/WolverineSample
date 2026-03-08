@@ -29,7 +29,10 @@ public class ListBacktestRunsHandler
             .Select(r => new BacktestRunDto(
                 r.Id, r.StrategyId, r.Strategy.Name,
                 r.Symbol, r.Status.ToString(),
-                r.StartDate, r.EndDate, r.CreatedAt))
+                r.StartDate, r.EndDate, r.CreatedAt,
+                r.UniverseId, r.UniverseName,
+                r.InitialCapital, r.MaxPositions,
+                r.TotalSymbols, r.SymbolsWithData))
             .ToListAsync();
 
         return new PagedResponse<BacktestRunDto>

@@ -42,17 +42,69 @@ public class BacktestEndpoints : IEndpoint
             .WithTags("Backtests")
             .RequireAuthorization();
 
-        backtests.MapPostToWolverine<RunBacktestCommand, BacktestRunDto>("/")
-            .WithSummary("Run a backtest for a strategy against historical data");
+        // Unified: single-symbol OR portfolio backtest (set UniverseId for portfolio)
+        backtests.MapPost("/", RunBacktest)
+            .WithSummary("Run a backtest (single-symbol or portfolio). Set UniverseId for portfolio mode.");
 
         backtests.MapGet("/{backtestRunId}", GetBacktestResult)
             .WithSummary("Get the result of a specific backtest run");
 
         backtests.MapGet("/", ListBacktestRuns)
-            .WithSummary("List backtest runs, optionally filtered by strategy");
+            .WithSummary("List all backtest runs (single + portfolio, unified)");
 
         backtests.MapGet("/compare", CompareBacktests)
             .WithSummary("Compare multiple backtest runs side-by-side (up to 10)");
+
+        backtests.MapDelete("/", ClearAllBacktests)
+            .WithSummary("Delete all backtest results and runs");
+
+        backtests.MapGet("/{backtestRunId}/trades/{tradeIndex:int}/chart", GetTradeChartData)
+            .WithSummary("Get OHLCV candle data around a specific trade for chart visualization");
+
+        backtests.MapPost("/optimize", RunOptimization)
+            .WithSummary("Run walk-forward optimization to find best parameters for a strategy");
+
+        backtests.MapPost("/{backtestRunId}/auto-optimize", AutoOptimize)
+            .WithSummary("Auto-diagnose weaknesses and run optimization with generated parameter ranges");
+
+        backtests.MapGet("/{backtestRunId}/auto-optimize/progress", GetAutoOptimizeProgress)
+            .WithSummary("Poll auto-optimize progress");
+    }
+
+    private static async Task<BacktestResultDto> RunBacktest(
+        RunBacktestCommand command,
+        IMessageBus bus)
+    {
+        return await bus.InvokeAsync<BacktestResultDto>(command);
+    }
+
+    private static async Task<OptimizationResultDto> RunOptimization(
+        RunOptimizationCommand command,
+        IMessageBus bus)
+    {
+        return await bus.InvokeAsync<OptimizationResultDto>(command);
+    }
+
+    private static async Task<AutoOptimizeResultDto> AutoOptimize(
+        Guid backtestRunId,
+        IMessageBus bus)
+    {
+        return await bus.InvokeAsync<AutoOptimizeResultDto>(new AutoOptimizeCommand(backtestRunId));
+    }
+
+    private static IResult GetAutoOptimizeProgress(Guid backtestRunId)
+    {
+        var entry = Application.Backtesting.AutoOptimizeProgressStore.Get(backtestRunId);
+        if (entry is null)
+            return Results.Ok(new { step = "idle", windowIndex = 0, totalWindows = 0, completedCombos = 0L, totalCombos = 0L });
+        return Results.Ok(new
+        {
+            step = entry.Step,
+            windowIndex = entry.WindowIndex,
+            totalWindows = entry.TotalWindows,
+            completedCombos = entry.CompletedCombos,
+            totalCombos = entry.TotalCombos,
+        });
     }
 
     private static async Task<PagedResponse<StrategyDto>> ListStrategies(
@@ -90,6 +142,23 @@ public class BacktestEndpoints : IEndpoint
             .ToList();
 
         return await bus.InvokeAsync<BacktestComparisonDto>(new CompareBacktestsQuery(parsedIds));
+    }
+
+    private static async Task<int> ClearAllBacktests(IMessageBus bus)
+    {
+        return await bus.InvokeAsync<int>(new ClearBacktestResultsCommand());
+    }
+
+    private static async Task<TradeChartDataDto> GetTradeChartData(
+        Guid backtestRunId,
+        int tradeIndex,
+        BacktestDbContext backtestDb,
+        MarketDataDbContext marketDb)
+    {
+        return await Application.Handlers.Backtesting.GetTradeChartDataHandler.HandleAsync(
+            new GetTradeChartDataQuery(backtestRunId, tradeIndex),
+            backtestDb,
+            marketDb);
     }
 
     private static async Task<OptimizedParamsResponse> GetOptimizedParams(

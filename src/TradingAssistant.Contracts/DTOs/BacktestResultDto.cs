@@ -14,7 +14,7 @@ public record BacktestResultDto(
     DateTime StartDate,
     DateTime EndDate,
     DateTime CreatedAt,
-    // ── Extended fields (STORY-034) ──
+    // Extended metrics
     decimal Cagr = 0,
     decimal SortinoRatio = 0,
     decimal CalmarRatio = 0,
@@ -27,4 +27,17 @@ public record BacktestResultDto(
     string? BenchmarkReturnJson = null,
     string? ParametersJson = null,
     string? WalkForwardJson = null,
-    string? SpyComparisonJson = null);
+    string? SpyComparisonJson = null,
+    // Portfolio-specific fields (nullable for single-symbol)
+    Guid? UniverseId = null,
+    string? UniverseName = null,
+    decimal InitialCapital = 100_000m,
+    int MaxPositions = 10,
+    int? TotalSymbols = null,
+    int? SymbolsWithData = null,
+    int? UniqueSymbolsTraded = null,
+    decimal? AveragePositionsHeld = null,
+    int? MaxPositionsHeld = null,
+    string? SymbolBreakdownJson = null,
+    string? ExecutionLogJson = null,
+    string? RegimeTimelineJson = null);

@@ -91,6 +91,42 @@ public class StopLossConfig
     /// Multiplier: for ATR = N x ATR, for FixedPercent = N%.
     /// </summary>
     public decimal Multiplier { get; set; } = 2m;
+
+    /// <summary>
+    /// Maximum stop-loss distance as % of entry price. Caps ATR-based SL on volatile stocks.
+    /// </summary>
+    public decimal MaxStopLossPercent { get; set; } = 5m;
+
+    /// <summary>
+    /// Enable trailing stop that ratchets up as price moves in our favor.
+    /// </summary>
+    public bool UseTrailingStop { get; set; }
+
+    /// <summary>
+    /// Activate trailing stop after unrealized profit reaches this many R-multiples.
+    /// </summary>
+    public decimal TrailingActivationR { get; set; } = 1.5m;
+
+    /// <summary>
+    /// Trail stop at this many ATR below the highest high since entry.
+    /// </summary>
+    public decimal TrailingAtrMultiplier { get; set; } = 2m;
+
+    /// <summary>
+    /// Enable time-decay tightening: narrow stops on stale positions.
+    /// </summary>
+    public bool UseTimeDecay { get; set; }
+
+    /// <summary>
+    /// Start tightening stops after this many days in the position.
+    /// </summary>
+    public int TimeDecayStartDays { get; set; } = 10;
+
+    /// <summary>
+    /// Tighten stop to this % of the original risk distance.
+    /// E.g. 50 = move SL to halfway between entry and original SL.
+    /// </summary>
+    public decimal TimeDecayTightenPercent { get; set; } = 50m;
 }
 
 public class TakeProfitConfig
@@ -127,7 +163,7 @@ public class PositionSizingConfig
     /// <summary>
     /// Maximum total portfolio risk (sum of all open position risks).
     /// </summary>
-    public decimal MaxPortfolioHeat { get; set; } = 6m;
+    public decimal MaxPortfolioHeat { get; set; } = 12m;
 
     /// <summary>
     /// Max drawdown before circuit breaker pauses trading.
@@ -191,6 +227,24 @@ public class PositionSizingConfig
     /// Maximum notional allocation per market as % of total equity (default 50%).
     /// </summary>
     public decimal MaxMarketAllocationPercent { get; set; } = 50m;
+
+    /// <summary>
+    /// Maximum holding days before forcing an exit. 0 = unlimited (default).
+    /// </summary>
+    public int MaxHoldingDays { get; set; } = 20;
+
+    /// <summary>
+    /// When true, stale positions (exceeding MaxHoldingDays) are swapped for new
+    /// higher-scoring signals rather than simply closed. Only applies when
+    /// MaxHoldingDays > 0.
+    /// </summary>
+    public bool UseOpportunityCostSwap { get; set; }
+
+    /// <summary>
+    /// Enable weekly-trend alignment filter: skip long entries when weekly SMA50 &lt; SMA200.
+    /// Requires weekly bar data to be present for the symbol.
+    /// </summary>
+    public bool RequireWeeklyTrendAlignment { get; set; }
 }
 
 public class TradeFilterConfig

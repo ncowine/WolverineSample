@@ -34,5 +34,6 @@ export class SidebarComponent {
     { route: '/journal', icon: '\u{1F4D3}', label: 'Journal' },
     { route: '/backtests', icon: '\u{1F9EA}', label: 'Backtests' },
     { route: '/screener', icon: '\u{1F3AF}', label: 'Screener' },
+    { route: '/settings', icon: '\u{2699}\u{FE0F}', label: 'Settings' },
   ];
 }

@@ -77,8 +77,8 @@ public static class StrategyGenerator
             return (emptyResult, new PerformanceMetrics());
         }
 
-        var engine = new BacktestEngine(definition);
-        var result = engine.Run(bars, symbol);
+        var engine = new PortfolioBacktestEngine(definition, maxPositions: 1, initialCapital: 100_000m);
+        var result = engine.Run(new Dictionary<string, CandleWithIndicators[]> { [symbol] = bars });
         var metrics = PerformanceCalculator.Calculate(result);
 
         return (result, metrics);

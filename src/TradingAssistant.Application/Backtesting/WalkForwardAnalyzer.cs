@@ -22,7 +22,8 @@ public static class WalkForwardAnalyzer
         CandleWithIndicators[] bars,
         ParameterSpace parameterSpace,
         Func<ParameterSet, CandleWithIndicators[], BacktestEngineResult> backtestRunnerFactory,
-        WalkForwardConfig? config = null)
+        WalkForwardConfig? config = null,
+        Action<int, int, long, long>? onProgress = null)
     {
         config ??= new WalkForwardConfig();
         var startTime = DateTime.UtcNow;
@@ -57,12 +58,17 @@ public static class WalkForwardAnalyzer
                 continue;
             }
 
+            // Report window start
+            onProgress?.Invoke(i, windows.Count, 0, parameterSpace.TotalCombinations);
+
             // Optimize on in-sample
+            var windowIdx = i;
             var optimizationResult = GridSearchOptimizer.RunSequential(
                 parameterSpace,
                 paramSet => backtestRunnerFactory(paramSet, inSampleBars),
                 config.RiskFreeRate,
-                topN: config.OptimizationTopN);
+                topN: config.OptimizationTopN,
+                onProgress: gp => { if (gp.Completed % 20 == 0 || gp.Completed == gp.Total) onProgress?.Invoke(windowIdx, windows.Count, gp.Completed, gp.Total); });
 
             if (optimizationResult.TopResults.Count == 0)
             {

@@ -71,6 +71,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/markets/markets.routes').then((m) => m.marketsRoutes),
       },
+      {
+        path: 'settings',
+        loadChildren: () =>
+          import('./features/settings/settings.routes').then((m) => m.settingsRoutes),
+      },
     ],
   },
 

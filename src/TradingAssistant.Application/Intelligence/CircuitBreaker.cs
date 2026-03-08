@@ -81,11 +81,12 @@ public static class CircuitBreaker
         }
 
         // Active → check if should deactivate
+        // Allow recovery regardless of regime — regime gating was too aggressive
+        // and could lock out trading for months during HighVolatility
         var recoveryThreshold = peakEquity * (1 - recoveryPercent / 100m);
         var equityRecovered = currentEquity >= recoveryThreshold;
-        var regimeIsSafe = !string.Equals(currentRegime, "HighVolatility", StringComparison.OrdinalIgnoreCase);
 
-        if (equityRecovered && regimeIsSafe)
+        if (equityRecovered)
         {
             return new CircuitBreakerEvaluation(
                 ShouldActivate: false,

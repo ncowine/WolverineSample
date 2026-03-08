@@ -151,6 +151,14 @@ export class ApiService {
     return this.http.get<any>('/api/backtests', { params: this.toHttpParams(params) });
   }
 
+  clearBacktestResults() {
+    return this.http.delete<any>('/api/backtests');
+  }
+
+  getTradeChartData(backtestRunId: string, tradeIndex: number) {
+    return this.http.get<any>(`/api/backtests/${backtestRunId}/trades/${tradeIndex}/chart`);
+  }
+
   compareBacktests(ids: string[]) {
     return this.http.get<any>('/api/backtests/compare', {
       params: this.toHttpParams({ ids: ids.join(',') }),
@@ -197,6 +205,18 @@ export class ApiService {
     return this.http.post<any>('/api/screener/run', request ?? {});
   }
 
+  runOptimization(params: any) {
+    return this.http.post<any>('/api/backtests/optimize', params);
+  }
+
+  autoOptimize(backtestRunId: string) {
+    return this.http.post<any>(`/api/backtests/${backtestRunId}/auto-optimize`, {});
+  }
+
+  getAutoOptimizeProgress(backtestRunId: string) {
+    return this.http.get<any>(`/api/backtests/${backtestRunId}/auto-optimize/progress`);
+  }
+
   getOptimizedParams(strategyId: string) {
     return this.http.get<any>(`/api/strategies/${strategyId}/optimized-params`);
   }
@@ -204,6 +224,15 @@ export class ApiService {
   // --- Intelligence ---
   detectStockRegime(symbol: string) {
     return this.http.get<any>(`/api/intelligence/detect-regime/${symbol}`);
+  }
+
+  // --- User Settings ---
+  getUserSettings() {
+    return this.http.get<any>('/api/user/settings');
+  }
+
+  updateUserSettings(settings: any) {
+    return this.http.put<any>('/api/user/settings', settings);
   }
 
   // --- Audit ---

@@ -42,6 +42,9 @@ public class BacktestDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Symbol).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.UniverseName).HasMaxLength(200);
+            entity.Property(e => e.InitialCapital).HasPrecision(18, 2);
+            entity.Ignore(e => e.IsPortfolio);
             entity.HasOne(e => e.Strategy)
                 .WithMany(s => s.BacktestRuns)
                 .HasForeignKey(e => e.StrategyId);
@@ -60,6 +63,7 @@ public class BacktestDbContext : DbContext
             entity.Property(e => e.ProfitFactor).HasPrecision(8, 4);
             entity.Property(e => e.Expectancy).HasPrecision(18, 4);
             entity.Property(e => e.OverfittingScore).HasPrecision(8, 4);
+            entity.Property(e => e.AveragePositionsHeld).HasPrecision(8, 2);
             entity.Property(e => e.EquityCurveJson).HasMaxLength(500_000);
             entity.Property(e => e.TradeLogJson).HasMaxLength(500_000);
             entity.Property(e => e.MonthlyReturnsJson).HasMaxLength(8_000);
@@ -67,6 +71,9 @@ public class BacktestDbContext : DbContext
             entity.Property(e => e.ParametersJson).HasMaxLength(4_000);
             entity.Property(e => e.WalkForwardJson).HasMaxLength(100_000);
             entity.Property(e => e.SpyComparisonJson).HasMaxLength(1_000);
+            entity.Property(e => e.SymbolBreakdownJson).HasMaxLength(100_000);
+            entity.Property(e => e.ExecutionLogJson).HasMaxLength(500_000);
+            entity.Property(e => e.RegimeTimelineJson).HasMaxLength(50_000);
             entity.HasOne(e => e.BacktestRun)
                 .WithOne(r => r.Result)
                 .HasForeignKey<BacktestResult>(e => e.BacktestRunId);
